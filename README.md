@@ -10,6 +10,8 @@ Barkod tabanli depo / stok yonetim sistemi. Node.js + Express + SQLite backend i
 - 👤 Calisan bazli stok gorunumu
 - 📂 Excel'den toplu stok yukleme
 - ⬇ Excel rapor indirme (stok + islem gecmisi)
+- 📷 Mobilde kamera ile barkod/QR okutma
+- 🔄 Google Sheets senkronizasyonu (opsiyonel)
 - 🔒 Sifre korumali giris
 - 💾 SQLite ile kalici veritabani (sunucu yeniden baslasa da veriler korunur)
 
@@ -31,6 +33,12 @@ Tarayicidan `http://localhost:3000` adresine gidin.
 - **Backend:** Node.js 24+ (Express)
 - **Veritabani:** SQLite (yerlesik `node:sqlite` modulu — native bagimlilik yok)
 - **Frontend:** Saf HTML/CSS/JS (public/index.html)
+
+## Google Sheets Senkronizasyonu (opsiyonel)
+
+Verileri canli olarak bir Google Sheets tablosuna yansitmak icin
+`SHEETS-KURULUM.md` adimlarini izleyin. Yapilandirilmazsa uygulama
+yalnizca SQLite ile sorunsuz calisir.
 
 ## VPS'e Kurulum
 

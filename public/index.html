@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ki Stok Sistemi</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -125,6 +126,18 @@
   .login-btn:hover { background: #5a6fd6; }
   .login-err { color: #fca5a5; font-size: 12px; text-align: center; min-height: 16px; }
   .app-hidden { display: none; }
+
+  /* Kamera tarama */
+  .btn-kamera { margin-top: 10px; width: 100%; background: #1a1f2e; border: 1.5px solid #667eea; color: #a3bffa; border-radius: 10px; padding: 14px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 1px; transition: all 0.2s; }
+  .btn-kamera:hover { background: #2d3748; color: #c3dafe; }
+  .kamera-overlay { position: fixed; inset: 0; background: rgba(8,11,18,0.96); z-index: 1100; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+  .kamera-box { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 16px; align-items: center; }
+  .kamera-baslik { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: #e2e8f0; }
+  #kamera-reader { width: 100%; border-radius: 14px; overflow: hidden; border: 1px solid #2d3748; }
+  #kamera-reader video { border-radius: 14px; }
+  .kamera-ipucu { font-size: 12px; color: #4a5568; text-align: center; }
+  .btn-kamera-kapat { width: 100%; max-width: 420px; background: #7f1d1d; border: 1px solid #ef4444; color: #fca5a5; border-radius: 10px; padding: 14px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 1px; }
+  .btn-kamera-kapat:hover { background: #991b1b; color: #fecaca; }
 </style>
 </head>
 <body>
@@ -138,6 +151,17 @@
     <button class="login-btn" onclick="girisYap()">Giris Yap</button>
     <div class="login-err" id="login-err"></div>
   </div>
+</div>
+
+<!-- KAMERA TARAMA -->
+<div class="kamera-overlay" id="kamera-overlay">
+  <div class="kamera-box">
+    <div class="kamera-baslik">📷 Barkod / QR Tara</div>
+    <div id="kamera-reader"></div>
+    <div class="kamera-ipucu">Barkodu cerceve icine getirin</div>
+  </div>
+  <div style="height:14px;"></div>
+  <button class="btn-kamera-kapat" onclick="kameraKapat()">✕ Kapat</button>
 </div>
 
 <!-- UYGULAMA -->
@@ -155,6 +179,7 @@
       <input type="file" accept=".xlsx,.xls" onchange="excelYukle(event)">
     </div>
     <button class="btn-rapor" onclick="excelIndir()">⬇ Rapor Indir</button>
+    <button class="btn-rapor" id="btn-sync" onclick="sheetsSenkron()">🔄 Sheets</button>
     <button class="btn-rapor" onclick="cikisYap()">🚪 Cikis</button>
   </div>
 </div>
@@ -194,6 +219,7 @@
     <div>
       <div class="section-label">BARKOD</div>
       <input class="scan-input" id="barkod-input" placeholder="Okutun veya yazin..." oninput="barkodDegisti()" onkeydown="barkodKeyDown(event)" autofocus>
+      <button class="btn-kamera" onclick="kameraAc()">📷 Kamera ile Tara</button>
       <div id="urun-preview" style="display:none;" class="urun-preview">
         <div class="urun-adi" id="preview-adi"></div>
         <div class="urun-stok">Mevcut stok: <span id="preview-stok"></span></div>
@@ -550,6 +576,91 @@ function renderCalisan() {
       </div>
       ${satirlar}`;
   }).join('');
+}
+
+// ===== GOOGLE SHEETS SENKRON =====
+async function sheetsSenkron() {
+  const btn = document.getElementById('btn-sync');
+  const eski = btn.textContent;
+  btn.textContent = '⏳ Senkron...';
+  btn.disabled = true;
+  try {
+    const r = await api('/sync', { method: 'POST' });
+    if (r.ok) showFlash('success', '🔄 ' + r.mesaj);
+    else showFlash('error', '⚠️ ' + r.mesaj);
+  } catch (e) {
+    showFlash('error', 'Senkron hatasi: ' + e.message);
+  } finally {
+    btn.textContent = eski;
+    btn.disabled = false;
+  }
+}
+
+// ===== KAMERA TARAMA =====
+let qrScanner = null;
+let kameraMesgul = false;
+
+async function kameraAc() {
+  if (typeof Html5Qrcode === 'undefined') {
+    showFlash('error', 'Kamera kutuphanesi yuklenemedi (internet?)');
+    return;
+  }
+  const overlay = document.getElementById('kamera-overlay');
+  overlay.style.display = 'flex';
+  try {
+    qrScanner = new Html5Qrcode('kamera-reader', { verbose: false });
+    const formatlar = [
+      Html5QrcodeSupportedFormats.QR_CODE,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+    ];
+    await qrScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 260, height: 170 }, formatsToSupport: formatlar },
+      (kod) => onKodOkundu(kod),
+      () => {}
+    );
+  } catch (e) {
+    const msg = (e && e.message) ? e.message : String(e);
+    if (/permission|denied|NotAllowed/i.test(msg)) {
+      showFlash('error', 'Kamera izni reddedildi. Tarayici ayarlarindan izin verin.');
+    } else if (/NotFound|no camera/i.test(msg)) {
+      showFlash('error', 'Kamera bulunamadi.');
+    } else if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      showFlash('error', 'Kamera icin HTTPS gerekli (mobilde).');
+    } else {
+      showFlash('error', 'Kamera acilamadi: ' + msg);
+    }
+    kameraKapat();
+  }
+}
+
+async function kameraKapat() {
+  const overlay = document.getElementById('kamera-overlay');
+  if (qrScanner) {
+    try { await qrScanner.stop(); } catch (e) {}
+    try { qrScanner.clear(); } catch (e) {}
+    qrScanner = null;
+  }
+  overlay.style.display = 'none';
+  kameraMesgul = false;
+}
+
+function onKodOkundu(kod) {
+  if (kameraMesgul) return;   // ayni okumayi tekrar islemeyi engelle
+  kameraMesgul = true;
+  const val = String(kod).trim();
+  document.getElementById('barkod-input').value = val;
+  barkodDegisti();
+  kameraKapat();
+  const u = stoklar.find(s => s.barkod === val);
+  if (u) showFlash('success', '📷 Okundu: ' + u.urun.slice(0, 40));
+  else showFlash('error', 'Barkod stokta yok: ' + val);
+  document.getElementById('barkod-input').focus();
 }
 
 // ===== EXCEL YUKLE =====

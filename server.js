@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
+const sheets = require('./sheets');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -63,6 +64,9 @@ app.post('/api/stoklar/import', auth, (req, res) => {
 
   const rows = db.prepare('SELECT barkod, urun, kategori, stok FROM stoklar ORDER BY urun').all();
   res.json({ ok: true, adet: rows.length, stoklar: rows });
+
+  // Google Sheets'e yansit (arka planda)
+  sheets.syncStok().catch((e) => console.error('[Sheets] stok sync:', e.message));
 });
 
 // ===== CALISANLAR =====
@@ -107,6 +111,14 @@ app.post('/api/islem', auth, (req, res) => {
       return { id: info.lastInsertRowid, urun: u.urun, oncekiStok: u.stok, yeniStok };
     })();
     res.json({ ok: true, ...sonuc });
+
+    // Google Sheets'e yansit (arka planda): islemi ekle + guncel stogu yaz
+    const islemKaydi = {
+      tarih: new Date().toISOString(), tip, barkod, urun: sonuc.urun,
+      adet: miktar, oncekiStok: sonuc.oncekiStok, yeniStok: sonuc.yeniStok, not: not || '',
+    };
+    Promise.all([sheets.appendIslem(islemKaydi), sheets.syncStok()])
+      .catch((e) => console.error('[Sheets] islem sync:', e.message));
   } catch (e) {
     if (e && e.code) return res.status(e.code).json({ error: e.msg });
     console.error(e);
@@ -114,9 +126,28 @@ app.post('/api/islem', auth, (req, res) => {
   }
 });
 
+// ===== MANUEL SENKRON =====
+app.post('/api/sync', auth, async (req, res) => {
+  if (!sheets.isAktif()) {
+    return res.json({ ok: false, aktif: false, mesaj: 'Google Sheets senkronizasyonu yapilandirilmamis.' });
+  }
+  try {
+    await sheets.syncAll();
+    res.json({ ok: true, aktif: true, mesaj: 'Tum veriler Google Sheets ile senkronize edildi.' });
+  } catch (e) {
+    console.error('[Sheets] manuel sync:', e.message);
+    res.status(500).json({ ok: false, aktif: true, mesaj: 'Senkron hatasi: ' + e.message });
+  }
+});
+
+app.get('/api/sync/durum', auth, (req, res) => {
+  res.json({ aktif: sheets.isAktif() });
+});
+
 // ===== STATIK FRONTEND =====
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.listen(PORT, () => {
   console.log(`Ki Stok Sistemi http://localhost:${PORT} adresinde calisiyor`);
+  sheets.init();
 });

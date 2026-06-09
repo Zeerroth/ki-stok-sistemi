@@ -4,6 +4,11 @@ node_modules/
 # Ortam degiskenleri (sifreler!)
 .env
 
+# Google service account kimlik dosyalari (GIZLI!)
+google-credentials.json
+*-credentials.json
+service-account*.json
+
 # Veritabani dosyalari
 data/
 *.db

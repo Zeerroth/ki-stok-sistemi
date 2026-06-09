@@ -1,0 +1,19 @@
+{
+  "name": "ki-stok-sistemi",
+  "version": "1.0.0",
+  "description": "Ki Stok Sistemi - Depo Yonetim Sistemi (backend + SQLite)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server.js"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

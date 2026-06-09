@@ -1,0 +1,26 @@
+# Bagimliliklar
+node_modules/
+
+# Ortam degiskenleri (sifreler!)
+.env
+
+# Veritabani dosyalari
+data/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+
+# Loglar
+*.log
+npm-debug.log*
+
+# PM2
+.pm2/
+
+# Isletim sistemi
+.DS_Store
+Thumbs.db
+
+# VPS kurulum talimati (gizli - sunucu/sifre bilgileri icerebilir)
+VPS-KURULUM.md

@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ki Stok Sistemi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #080b12; color: #e2e8f0; font-family: 'DM Mono', 'Courier New', monospace; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0d1117; }
+  ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 2px; }
+
+  /* Header */
+  .header { background: #0d1117; border-bottom: 1px solid #1a1f2e; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+  .logo span.ki { color: #667eea; }
+  .logo span.stok { color: #e2e8f0; }
+  .header-sub { font-size: 11px; color: #4a5568; letter-spacing: 1px; margin-left: 14px; border-left: 1px solid #2d3748; padding-left: 14px; }
+  .btn-rapor { background: #1a1f2e; border: 1px solid #2d3748; color: #a0aec0; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 12px; }
+  .btn-rapor:hover { background: #2d3748; color: #e2e8f0; }
+
+  /* Tabs */
+  .tabs { background: #0d1117; border-bottom: 1px solid #1a1f2e; padding: 0 28px; display: flex; }
+  .tab { background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; padding: 12px 22px; font-family: 'DM Mono', monospace; font-size: 12px; color: #4a5568; letter-spacing: 1px; text-transform: uppercase; transition: all 0.2s; }
+  .tab.active { color: #e2e8f0; border-bottom-color: #e2e8f0; }
+  .tab:hover:not(.active) { color: #a0aec0; }
+
+  /* Content */
+  .content { padding: 28px; max-width: 960px; margin: 0 auto; }
+  .page { display: none; flex-direction: column; gap: 20px; }
+  .page.active { display: flex; }
+
+  /* Flash */
+  .flash { border-radius: 10px; padding: 12px 20px; font-size: 13px; font-weight: 500; animation: slideDown 0.2s ease; }
+  .flash.success { background: #14532d; border: 1px solid #22c55e; color: #86efac; }
+  .flash.error { background: #7f1d1d; border: 1px solid #ef4444; color: #fca5a5; }
+  @keyframes slideDown { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: none; } }
+
+  /* Tip buttons */
+  .tip-btns { display: flex; gap: 10px; }
+  .tip-btn { border: 1.5px solid #2d3748; border-radius: 10px; padding: 14px 18px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 12px; background: #0d1117; color: #718096; display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; transition: all 0.2s; }
+  .tip-btn .tip-emoji { font-size: 22px; }
+  .tip-btn.active-hediye { border-color: #a855f7; background: #2d1b4e; color: #a855f7; }
+  .tip-btn.active-satis  { border-color: #f59e0b; background: #3b2500; color: #f59e0b; }
+  .tip-btn.active-depo   { border-color: #3b82f6; background: #1e2d4a; color: #3b82f6; }
+
+  /* Scan input */
+  .section-label { font-size: 10px; color: #4a5568; letter-spacing: 2px; margin-bottom: 10px; }
+  .scan-input { width: 100%; background: #0d1117; border: 1.5px solid #2d3748; border-radius: 10px; padding: 18px 20px; font-size: 20px; font-family: 'DM Mono', monospace; color: #f7fafc; outline: none; letter-spacing: 4px; text-align: center; transition: border-color 0.2s; }
+  .scan-input:focus { border-color: #667eea; }
+  .urun-preview { margin-top: 10px; background: #0d1117; border: 1px solid #1a365d; border-radius: 8px; padding: 12px 16px; font-size: 12px; }
+  .urun-preview .urun-adi { color: #90cdf4; font-weight: 500; }
+  .urun-preview .urun-stok { color: #4a5568; margin-top: 4px; }
+  .urun-preview .urun-stok span { color: #68d391; }
+
+  /* Adet + Not */
+  .row { display: flex; gap: 12px; align-items: flex-end; }
+  .adet-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .adet-controls { display: flex; align-items: center; gap: 8px; }
+  .adet-btn { background: #1a1f2e; border: 1px solid #2d3748; color: #e2e8f0; border-radius: 6px; width: 32px; height: 36px; cursor: pointer; font-size: 18px; line-height: 1; }
+  .adet-input { background: #0d1117; border: 1.5px solid #2d3748; border-radius: 8px; padding: 8px 0; font-family: 'DM Mono', monospace; font-size: 14px; color: #f7fafc; outline: none; width: 70px; text-align: center; }
+  .not-wrap { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .not-input { background: #0d1117; border: 1.5px solid #2d3748; border-radius: 8px; padding: 10px 14px; font-family: 'DM Mono', monospace; font-size: 12px; color: #f7fafc; outline: none; width: 100%; }
+
+  /* Islem butonu */
+  .btn-islem { border: none; cursor: pointer; border-radius: 10px; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; padding: 14px 28px; letter-spacing: 1px; text-transform: uppercase; transition: all 0.2s; width: 100%; }
+
+  /* Ozet kartlar */
+  .ozet-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .ozet-kart { background: #0d1117; border-radius: 12px; padding: 16px 20px; }
+  .ozet-emoji { font-size: 20px; }
+  .ozet-sayi { font-size: 24px; font-weight: 600; margin-top: 8px; }
+  .ozet-label { font-size: 11px; color: #4a5568; margin-top: 2px; }
+
+  /* Filtreler */
+  .filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .search-in { background: #0d1117; border: 1px solid #2d3748; border-radius: 8px; padding: 8px 14px; font-family: 'DM Mono', monospace; font-size: 12px; color: #e2e8f0; outline: none; width: 220px; }
+  .search-in:focus { border-color: #667eea; }
+  .filter-btn { background: none; border: 1px solid #2d3748; border-radius: 6px; padding: 6px 12px; font-family: 'DM Mono', monospace; font-size: 11px; color: #718096; cursor: pointer; transition: all 0.15s; }
+  .filter-btn.active { border-color: #667eea; color: #e2e8f0; background: #1a1f2e; }
+  .kayit-sayi { font-size: 11px; color: #4a5568; margin-left: auto; }
+
+  /* Tablo basliklari */
+  .tablo-header { display: grid; padding: 6px 14px; font-size: 10px; color: #4a5568; letter-spacing: 1px; margin-bottom: 6px; }
+  .islem-header { grid-template-columns: 130px 90px 1fr 60px 100px; gap: 10px; }
+  .stok-header { grid-template-columns: 150px 1fr 90px 70px; gap: 10px; }
+  .calisan-header { grid-template-columns: 150px 1fr 70px; gap: 10px; }
+
+  /* Satirlar */
+  .islem-row { display: grid; grid-template-columns: 130px 90px 1fr 60px 100px; gap: 10px; align-items: center; padding: 10px 14px; border-radius: 8px; border: 1px solid #111827; margin-bottom: 4px; font-size: 12px; transition: background 0.15s; }
+  .islem-row:hover { background: #0d1117; }
+  .stok-row { display: grid; grid-template-columns: 150px 1fr 90px 70px; gap: 10px; align-items: center; padding: 10px 16px; border-radius: 8px; border: 1px solid #111827; margin-bottom: 4px; font-size: 12px; }
+  .stok-row:hover { background: #0d1117; }
+  .calisan-row { display: grid; grid-template-columns: 150px 1fr 70px; gap: 10px; align-items: center; padding: 10px 16px; border-radius: 8px; border: 1px solid #111827; margin-bottom: 4px; font-size: 12px; }
+  .scrollable { max-height: 480px; overflow-y: auto; }
+  .empty { text-align: center; color: #2d3748; padding: 40px 0; font-size: 13px; }
+
+  /* Badge */
+  .badge { padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: #14532d; color: #86efac; }
+  .badge-yellow { background: #713f12; color: #fcd34d; }
+  .badge-red { background: #7f1d1d; color: #fca5a5; }
+  .badge-blue { background: #1a2744; color: #90cdf4; }
+  .badge-gray { background: #1a1f2e; color: #718096; }
+
+  /* Calisan baslik */
+  .calisan-baslik { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: #e2e8f0; margin-bottom: 12px; margin-top: 24px; display: flex; align-items: center; gap: 10px; }
+  .calisan-tag { border-radius: 8px; padding: 4px 14px; font-size: 13px; }
+
+  /* Excel yukle */
+  .excel-btn-wrap { position: relative; }
+  .excel-btn-wrap input[type=file] { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; top: 0; left: 0; }
+
+  /* Login */
+  .login-overlay { position: fixed; inset: 0; background: #080b12; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .login-box { background: #0d1117; border: 1px solid #1a1f2e; border-radius: 16px; padding: 36px 32px; width: 320px; display: flex; flex-direction: column; gap: 16px; }
+  .login-box .logo { text-align: center; font-size: 26px; }
+  .login-box .login-sub { text-align: center; font-size: 11px; color: #4a5568; letter-spacing: 2px; }
+  .login-input { background: #080b12; border: 1.5px solid #2d3748; border-radius: 10px; padding: 14px 16px; font-family: 'DM Mono', monospace; font-size: 15px; color: #f7fafc; outline: none; text-align: center; letter-spacing: 3px; }
+  .login-input:focus { border-color: #667eea; }
+  .login-btn { background: #667eea; border: none; color: #fff; border-radius: 10px; padding: 14px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+  .login-btn:hover { background: #5a6fd6; }
+  .login-err { color: #fca5a5; font-size: 12px; text-align: center; min-height: 16px; }
+  .app-hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="logo"><span class="ki">Ki</span><span class="stok"> Stok</span></div>
+    <div class="login-sub">DEPO YONETIM SISTEMI</div>
+    <input class="login-input" id="login-sifre" type="password" placeholder="Sifre" onkeydown="if(event.key==='Enter')girisYap()">
+    <button class="login-btn" onclick="girisYap()">Giris Yap</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- UYGULAMA -->
+<div id="app" class="app-hidden">
+
+<!-- HEADER -->
+<div class="header">
+  <div style="display:flex; align-items:center;">
+    <div class="logo"><span class="ki">Ki</span><span class="stok"> Stok</span></div>
+    <div class="header-sub">DEPO YONETIM SISTEMI</div>
+  </div>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <div class="excel-btn-wrap">
+      <button class="btn-rapor">📂 Excel Yukle</button>
+      <input type="file" accept=".xlsx,.xls" onchange="excelYukle(event)">
+    </div>
+    <button class="btn-rapor" onclick="excelIndir()">⬇ Rapor Indir</button>
+    <button class="btn-rapor" onclick="cikisYap()">🚪 Cikis</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="setTab('okut', this)">📡 Barkod Okut</button>
+  <button class="tab" onclick="setTab('cikislar', this)">📋 Cikislar</button>
+  <button class="tab" onclick="setTab('stok', this)">📦 Stok</button>
+  <button class="tab" onclick="setTab('calisan', this)">👤 Calisan</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- BARKOD OKUT -->
+  <div id="page-okut" class="page active">
+    <div id="flash-area"></div>
+
+    <!-- Cikis tipi -->
+    <div>
+      <div class="section-label">CIKIS TIPI</div>
+      <div class="tip-btns">
+        <button class="tip-btn active-satis" id="tip-hediye" onclick="setTip('hediye')">
+          <span class="tip-emoji">🎁</span><span>Hediye</span>
+        </button>
+        <button class="tip-btn active-satis" id="tip-satis" onclick="setTip('satis')">
+          <span class="tip-emoji">🏪</span><span>Satis</span>
+        </button>
+        <button class="tip-btn active-satis" id="tip-depo" onclick="setTip('depo')">
+          <span class="tip-emoji">🏭</span><span>Depo Satisi</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Barkod -->
+    <div>
+      <div class="section-label">BARKOD</div>
+      <input class="scan-input" id="barkod-input" placeholder="Okutun veya yazin..." oninput="barkodDegisti()" onkeydown="barkodKeyDown(event)" autofocus>
+      <div id="urun-preview" style="display:none;" class="urun-preview">
+        <div class="urun-adi" id="preview-adi"></div>
+        <div class="urun-stok">Mevcut stok: <span id="preview-stok"></span></div>
+      </div>
+    </div>
+
+    <!-- Adet + Not -->
+    <div class="row">
+      <div class="adet-wrap">
+        <div class="section-label">ADET</div>
+        <div class="adet-controls">
+          <button class="adet-btn" onclick="adetDegistir(-1)">−</button>
+          <input class="adet-input" id="adet-input" type="number" min="1" value="1">
+          <button class="adet-btn" onclick="adetDegistir(1)">+</button>
+        </div>
+      </div>
+      <div class="not-wrap">
+        <div class="section-label">NOT (opsiyonel)</div>
+        <input class="not-input" id="not-input" placeholder="Musteri adi, aciklama...">
+      </div>
+    </div>
+
+    <!-- Islem butonu -->
+    <button class="btn-islem" id="islem-btn" onclick="islemYap()" style="background:#f59e0b; color:#000;">
+      🏪 Satis Olarak Dus
+    </button>
+
+    <!-- Ozet -->
+    <div class="ozet-grid">
+      <div class="ozet-kart" style="border:1px solid #a855f733;">
+        <div class="ozet-emoji">🎁</div>
+        <div class="ozet-sayi" id="ozet-hediye" style="color:#a855f7;">0</div>
+        <div class="ozet-label">Hediye · <span id="ozet-hediye-islem">0</span> islem</div>
+      </div>
+      <div class="ozet-kart" style="border:1px solid #f59e0b33;">
+        <div class="ozet-emoji">🏪</div>
+        <div class="ozet-sayi" id="ozet-satis" style="color:#f59e0b;">0</div>
+        <div class="ozet-label">Satis · <span id="ozet-satis-islem">0</span> islem</div>
+      </div>
+      <div class="ozet-kart" style="border:1px solid #3b82f633;">
+        <div class="ozet-emoji">🏭</div>
+        <div class="ozet-sayi" id="ozet-depo" style="color:#3b82f6;">0</div>
+        <div class="ozet-label">Depo Satisi · <span id="ozet-depo-islem">0</span> islem</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CIKISLAR -->
+  <div id="page-cikislar" class="page">
+    <div class="filters">
+      <input class="search-in" id="cikis-arama" placeholder="Urun veya barkod ara..." oninput="renderCikislar()">
+      <button class="filter-btn active" id="f-hepsi"   onclick="setFiltre('hepsi')">Tumu</button>
+      <button class="filter-btn"        id="f-hediye"  onclick="setFiltre('hediye')">🎁 Hediye</button>
+      <button class="filter-btn"        id="f-satis"   onclick="setFiltre('satis')">🏪 Satis</button>
+      <button class="filter-btn"        id="f-depo"    onclick="setFiltre('depo')">🏭 Depo</button>
+      <span class="kayit-sayi" id="kayit-sayi">0 kayit</span>
+    </div>
+    <div class="tablo-header islem-header">
+      <span>TARIH</span><span>TIP</span><span>URUN</span><span>ADET</span><span>STOK DEGISIMI</span>
+    </div>
+    <div class="scrollable" id="cikis-liste">
+      <div class="empty">Henuz cikis kaydi yok</div>
+    </div>
+  </div>
+
+  <!-- STOK -->
+  <div id="page-stok" class="page">
+    <div class="tablo-header stok-header">
+      <span>BARKOD</span><span>URUN ADI</span><span>KATEGORI</span><span style="text-align:right;">STOK</span>
+    </div>
+    <div id="stok-liste"></div>
+  </div>
+
+  <!-- CALISAN -->
+  <div id="page-calisan" class="page">
+    <div id="calisan-liste"></div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ===== API KATMANI =====
+const API = '/api';
+function token() { return localStorage.getItem('ki_token') || ''; }
+
+async function api(yol, opt = {}) {
+  const res = await fetch(API + yol, {
+    ...opt,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token(),
+      ...(opt.headers || {}),
+    },
+  });
+  if (res.status === 401) { cikisYap(); throw new Error('Yetkisiz'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Hata');
+  return data;
+}
+
+// ===== DURUM =====
+let stoklar = [];
+let calisanlar = [];
+let islemler = [];
+let seciliTip = "satis";
+let filtreTip = "hepsi";
+
+const TIPLER = {
+  hediye: { label: "Hediye",      emoji: "🎁", color: "#a855f7", bg: "#2d1b4e" },
+  satis:  { label: "Satis",       emoji: "🏪", color: "#f59e0b", bg: "#3b2500" },
+  depo:   { label: "Depo Satisi", emoji: "🏭", color: "#3b82f6", bg: "#1e2d4a" },
+};
+
+// ===== LOGIN =====
+async function girisYap() {
+  const sifre = document.getElementById('login-sifre').value;
+  const err = document.getElementById('login-err');
+  err.textContent = '';
+  try {
+    const res = await fetch(API + '/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sifre }),
+    });
+    if (!res.ok) { err.textContent = 'Sifre hatali'; return; }
+    const data = await res.json();
+    localStorage.setItem('ki_token', data.token);
+    await uygulamayiBaslat();
+  } catch (e) {
+    err.textContent = 'Baglanti hatasi';
+  }
+}
+
+function cikisYap() {
+  localStorage.removeItem('ki_token');
+  document.getElementById('app').classList.add('app-hidden');
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('login-sifre').value = '';
+}
+
+async function uygulamayiBaslat() {
+  try {
+    await veriYukle();
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app').classList.remove('app-hidden');
+    setTip('satis');
+    renderStok();
+    renderCalisan();
+    guncelleOzet();
+    document.getElementById('barkod-input').focus();
+  } catch (e) {
+    cikisYap();
+  }
+}
+
+async function veriYukle() {
+  const [s, c, i] = await Promise.all([
+    api('/stoklar'),
+    api('/calisanlar'),
+    api('/islemler'),
+  ]);
+  stoklar = s;
+  calisanlar = c;
+  islemler = i.map(x => ({ ...x, not: x.not_metni, tarih: new Date(x.tarih) }));
+}
+
+// ===== TAB =====
+function setTab(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'stok') renderStok();
+  if (id === 'calisan') renderCalisan();
+  if (id === 'cikislar') renderCikislar();
+  if (id === 'okut') document.getElementById('barkod-input').focus();
+}
+
+// ===== TIP =====
+function setTip(tip) {
+  seciliTip = tip;
+  ['hediye','satis','depo'].forEach(t => {
+    const btn = document.getElementById('tip-' + t);
+    btn.className = 'tip-btn' + (t === tip ? ' active-' + t : '');
+  });
+  const t = TIPLER[tip];
+  const btn = document.getElementById('islem-btn');
+  btn.style.background = t.color;
+  btn.style.color = tip === 'satis' ? '#000' : '#fff';
+  btn.textContent = t.emoji + ' ' + (parseInt(document.getElementById('adet-input').value)||1) + ' Adet ' + t.label + ' Olarak Dus';
+}
+
+// ===== BARKOD =====
+function barkodDegisti() {
+  const val = document.getElementById('barkod-input').value.trim();
+  const u = stoklar.find(s => s.barkod === val);
+  const preview = document.getElementById('urun-preview');
+  if (u) {
+    document.getElementById('preview-adi').textContent = u.urun;
+    document.getElementById('preview-stok').textContent = u.stok;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+function barkodKeyDown(e) {
+  if (e.key === 'Enter') {
+    const val = document.getElementById('barkod-input').value.trim();
+    if (!val) return;
+    const u = stoklar.find(s => s.barkod === val);
+    if (u) islemYap();
+    else showFlash('error', 'Barkod bulunamadi!');
+  }
+}
+
+// ===== ADET =====
+function adetDegistir(d) {
+  const inp = document.getElementById('adet-input');
+  inp.value = Math.max(1, (parseInt(inp.value)||1) + d);
+  guncelleBtn();
+}
+
+function guncelleBtn() {
+  const adet = parseInt(document.getElementById('adet-input').value)||1;
+  const t = TIPLER[seciliTip];
+  const btn = document.getElementById('islem-btn');
+  btn.textContent = t.emoji + ' ' + adet + ' Adet ' + t.label + ' Olarak Dus';
+}
+
+// ===== ISLEM YAP =====
+async function islemYap() {
+  const barkod = document.getElementById('barkod-input').value.trim();
+  const adet = parseInt(document.getElementById('adet-input').value)||1;
+  const not = document.getElementById('not-input').value.trim();
+  if (!barkod) return;
+
+  try {
+    const r = await api('/islem', {
+      method: 'POST',
+      body: JSON.stringify({ barkod, adet, tip: seciliTip, not }),
+    });
+    // Yerel durumu guncelle
+    const idx = stoklar.findIndex(s => s.barkod === barkod);
+    if (idx !== -1) stoklar[idx] = { ...stoklar[idx], stok: r.yeniStok };
+    islemler.unshift({
+      id: r.id, tarih: new Date(), barkod, urun: r.urun,
+      tip: seciliTip, adet, not, oncekiStok: r.oncekiStok, yeniStok: r.yeniStok,
+    });
+
+    showFlash('success', '✓ ' + adet + ' adet ' + TIPLER[seciliTip].label + ' olarak dusuldu — ' + r.urun.slice(0,40));
+    document.getElementById('barkod-input').value = '';
+    document.getElementById('not-input').value = '';
+    document.getElementById('adet-input').value = 1;
+    document.getElementById('urun-preview').style.display = 'none';
+    guncelleBtn();
+    guncelleOzet();
+    document.getElementById('barkod-input').focus();
+  } catch (e) {
+    showFlash('error', e.message);
+  }
+}
+
+// ===== OZET =====
+function guncelleOzet() {
+  ['hediye','satis','depo'].forEach(tip => {
+    const listesi = islemler.filter(i => i.tip === tip);
+    const toplam = listesi.reduce((s, i) => s + i.adet, 0);
+    document.getElementById('ozet-' + tip).textContent = toplam;
+    document.getElementById('ozet-' + tip + '-islem').textContent = listesi.length;
+  });
+}
+
+// ===== FLASH =====
+let flashTimer = null;
+function showFlash(type, msg) {
+  const area = document.getElementById('flash-area');
+  area.innerHTML = '<div class="flash ' + type + '">' + msg + '</div>';
+  if (flashTimer) clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => area.innerHTML = '', 2500);
+}
+
+// ===== CIKISLAR =====
+function setFiltre(tip) {
+  filtreTip = tip;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('f-' + tip).classList.add('active');
+  renderCikislar();
+}
+
+function renderCikislar() {
+  const arama = document.getElementById('cikis-arama').value.toLowerCase();
+  const liste = islemler.filter(i =>
+    (filtreTip === 'hepsi' || i.tip === filtreTip) &&
+    (i.urun.toLowerCase().includes(arama) || i.barkod.includes(arama))
+  );
+  document.getElementById('kayit-sayi').textContent = liste.length + ' kayit';
+  const el = document.getElementById('cikis-liste');
+  if (!liste.length) { el.innerHTML = '<div class="empty">Kayit bulunamadi</div>'; return; }
+  el.innerHTML = liste.map(i => {
+    const t = TIPLER[i.tip];
+    const tarih = i.tarih.toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    const urunKisa = i.urun.length > 40 ? i.urun.slice(0,40) + '…' : i.urun;
+    return `<div class="islem-row">
+      <span style="color:#4a5568;font-size:11px;">${tarih}</span>
+      <span><span style="background:${t.bg};color:${t.color};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;">${t.emoji} ${t.label}</span></span>
+      <div>
+        <div style="color:#cbd5e0;">${urunKisa}</div>
+        ${i.not ? '<div style="color:#4a5568;font-size:11px;margin-top:2px;">📝 ' + i.not + '</div>' : ''}
+      </div>
+      <span style="color:#fbbf24;font-weight:600;">×${i.adet}</span>
+      <span style="font-size:11px;color:#4a5568;text-align:right;">
+        <span style="color:#f87171;">${i.oncekiStok}</span> → <span style="color:#68d391;">${i.yeniStok}</span>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+// ===== STOK =====
+function renderStok() {
+  document.getElementById('stok-liste').innerHTML = stoklar.map(s => {
+    const cls = s.stok === 0 ? 'badge-red' : s.stok < 50 ? 'badge-yellow' : 'badge-green';
+    return `<div class="stok-row">
+      <span style="color:#4a5568;font-size:11px;">${s.barkod}</span>
+      <span style="color:#e2e8f0;">${s.urun}</span>
+      <span><span class="badge badge-gray">${s.kategori}</span></span>
+      <span style="text-align:right;"><span class="badge ${cls}">${s.stok}</span></span>
+    </div>`;
+  }).join('');
+}
+
+// ===== CALISAN =====
+function renderCalisan() {
+  const kisiler = [...new Set(calisanlar.map(c => c.calisan))];
+  document.getElementById('calisan-liste').innerHTML = kisiler.map(ad => {
+    const renkTag = ad === 'Cenk'
+      ? 'background:#1a365d;color:#90cdf4;'
+      : 'background:#14532d;color:#86efac;';
+    const satirlar = calisanlar.filter(c => c.calisan === ad).map(c => `
+      <div class="calisan-row">
+        <span style="color:#4a5568;font-size:11px;">${c.barkod}</span>
+        <span style="color:#e2e8f0;">${c.urun}</span>
+        <span style="text-align:right;">
+          <span class="badge ${c.stok < 5 ? 'badge-red' : 'badge-blue'}">${c.stok}</span>
+        </span>
+      </div>`).join('');
+    return `
+      <div class="calisan-baslik">
+        <span class="calisan-tag" style="${renkTag}">👤 ${ad}</span>
+      </div>
+      <div class="tablo-header calisan-header">
+        <span>BARKOD</span><span>URUN</span><span style="text-align:right;">STOK</span>
+      </div>
+      ${satirlar}`;
+  }).join('');
+}
+
+// ===== EXCEL YUKLE =====
+function excelYukle(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(ev) {
+    try {
+      const wb = XLSX.read(ev.target.result, { type: 'binary' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws);
+      const yeni = data.map(row => ({
+        barkod: String(row['Barkod'] || row['barkod'] || ''),
+        urun: row['Urun Adi'] || row['Ürün Adı'] || row['urun'] || row['Urun'] || '',
+        stok: Number(row['Stok'] || row['stok'] || 0),
+        kategori: row['Kategori'] || row['kategori'] || 'Genel',
+      }));
+      const r = await api('/stoklar/import', { method: 'POST', body: JSON.stringify(yeni) });
+      stoklar = r.stoklar;
+      renderStok();
+      showFlash('success', '✓ ' + r.adet + ' urun yuklendi!');
+    } catch (err) {
+      showFlash('error', 'Yukleme hatasi: ' + err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+  e.target.value = '';
+}
+
+// ===== EXCEL INDIR =====
+function excelIndir() {
+  const wb = XLSX.utils.book_new();
+  const ws1 = XLSX.utils.json_to_sheet(stoklar.map(s => ({
+    'Barkod': s.barkod, 'Urun Adi': s.urun, 'Kategori': s.kategori, 'Stok': s.stok
+  })));
+  XLSX.utils.book_append_sheet(wb, ws1, 'Depo Stok');
+
+  if (islemler.length) {
+    const ws2 = XLSX.utils.json_to_sheet(islemler.map(i => ({
+      'Tarih': i.tarih.toLocaleString('tr-TR'),
+      'Cikis Tipi': TIPLER[i.tip].label,
+      'Barkod': i.barkod,
+      'Urun Adi': i.urun,
+      'Adet': i.adet,
+      'Onceki Stok': i.oncekiStok,
+      'Yeni Stok': i.yeniStok,
+      'Not': i.not || '',
+    })));
+    XLSX.utils.book_append_sheet(wb, ws2, 'Islem Gecmisi');
+  }
+  XLSX.writeFile(wb, 'ki_stok_rapor.xlsx');
+}
+
+document.getElementById('adet-input').addEventListener('input', guncelleBtn);
+
+// ===== BASLANGIC =====
+if (token()) {
+  uygulamayiBaslat();
+} else {
+  document.getElementById('login-sifre').focus();
+}
+</script>
+</body>
+</html>

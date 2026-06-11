@@ -57,7 +57,10 @@
     font-weight: bold;
   }
 
-  fieldset { border: 2px groove #fff; }
+  /* min-width:0 sart: fieldset'in tarayici varsayilani min-width:min-content'tir;
+     icindeki esnek satirlar (orn. adet - / sayi / + kutusu) fieldset'i ekrandan
+     genis yapip mobilde tum sayfayi yana tasiriyordu */
+  fieldset { border: 2px groove #fff; min-width: 0; }
   legend { font-weight: bold; padding: 0 6px; }
 
   .sayfa { display: none; }
@@ -280,7 +283,8 @@
     .tip-grup { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; width: 100%; }
     .tip-btn { min-height: 60px; font-size: 14px; font-weight: bold; padding: 4px 2px; }
     .adet-btn { width: 60px; min-height: 54px; font-size: 26px; font-weight: bold; flex-shrink: 0; }
-    #adet-input { flex: 1; min-width: 0; padding: 10px; font-size: 24px; font-weight: bold; text-align: center; }
+    /* width:0 + flex:1 — inputun dogal genisligi (size=20) hesaba karismasin */
+    #adet-input { flex: 1; width: 0; min-width: 0; padding: 10px; font-size: 24px; font-weight: bold; text-align: center; }
     #not-input { width: 100%; padding: 12px 10px; font-size: 16px; }
     .btn-onay { width: 100%; min-height: 62px; font-size: 17px; font-weight: bold; }
     .depo-grup { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }

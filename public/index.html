@@ -3,614 +3,526 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#16a34a">
+<meta name="theme-color" content="#000080">
 <meta name="format-detection" content="telephone=no">
-<title>Ki Stok</title>
+<title>Ki Stok Sistemi</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js" defer></script>
 <style>
-  :root {
-    --bg: #f2f4f7;
-    --kart: #ffffff;
-    --cizgi: #dde2ea;
-    --yazi: #101828;
-    --soluk: #667085;
-    --yesil: #16a34a;
-    --yesil-koyu: #15803d;
-    --kirmizi: #dc2626;
-    --turuncu: #ea580c;
-  }
+  /* ===================== ORTAK (klasik gri tema) ===================== */
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
-    background: var(--bg);
-    color: var(--yazi);
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    background: #d4d0c8;
+    color: #000;
+    font-family: Tahoma, Verdana, 'Segoe UI', Arial, sans-serif;
     min-height: 100vh;
-    font-size: 16px;
   }
-  button { font-family: inherit; cursor: pointer; }
-  input { font-family: inherit; }
-  input:focus { outline: 3px solid #86efac; outline-offset: 1px; }
+  button, input, select { font-family: inherit; }
+  button { cursor: pointer; }
 
-  /* ===== UST BASLIK ===== */
-  .ust {
-    background: var(--kart);
-    border-bottom: 1px solid var(--cizgi);
-    padding: 12px 16px;
-    text-align: center;
-    font-size: 18px;
-    font-weight: 800;
+  /* Klasik kabartmali dugme */
+  .btn {
+    background: #d4d0c8;
+    color: #000;
+    border: 2px solid;
+    border-color: #fff #404040 #404040 #fff;
   }
-  .ust .ki { color: var(--yesil-koyu); }
+  .btn:active:not(:disabled) { border-color: #404040 #fff #fff #404040; background: #c8c4bc; }
+  .btn:disabled { color: #7d7a72; cursor: default; }
 
-  /* ===== ICERIK ===== */
-  .icerik {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 16px 16px calc(90px + env(safe-area-inset-bottom));
-    display: none;
-    flex-direction: column;
-    gap: 14px;
+  /* Klasik cukur girdi alani */
+  .giris-kutusu {
+    background: #fff;
+    color: #000;
+    border: 2px solid;
+    border-color: #404040 #fff #fff #404040;
+    outline: none;
   }
-  .icerik.active { display: flex; }
+  .giris-kutusu:focus { background: #ffffe1; }
 
-  /* ===== ALT MENU ===== */
-  .alt-menu {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--kart);
-    border-top: 1px solid var(--cizgi);
-    display: flex;
-    padding-bottom: env(safe-area-inset-bottom);
-    z-index: 100;
+  /* Salt-okunur deger alani */
+  .deger {
+    display: block;
+    background: #ece9e2;
+    border: 2px solid;
+    border-color: #404040 #fff #fff #404040;
+    overflow-wrap: anywhere;
   }
-  .alt-btn {
-    flex: 1;
-    background: none;
-    border: none;
-    min-height: 60px;
-    padding: 8px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--soluk);
-  }
-  .alt-btn .ikon { font-size: 24px; line-height: 1.2; }
-  .alt-btn.active { color: var(--yesil-koyu); }
-  .alt-btn.active .ikon { transform: scale(1.12); }
+  .deger.bulunamadi { color: #a00000; font-weight: bold; }
 
-  /* ===== KART / ADIM ===== */
-  .kart {
-    background: var(--kart);
-    border: 1px solid var(--cizgi);
-    border-radius: 14px;
-    padding: 14px;
-  }
-  .adim {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-  .adim-no {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    background: var(--yesil);
+  /* Pencere basligi (lacivert) */
+  .baslik-cubugu {
+    background: linear-gradient(90deg, #000080, #1084d0);
     color: #fff;
-    font-size: 15px;
-    flex-shrink: 0;
+    font-weight: bold;
   }
 
-  /* ===== BARKOD ===== */
-  .barkod-input {
-    width: 100%;
-    border: 2px solid var(--cizgi);
-    border-radius: 12px;
-    padding: 14px;
-    font-size: 22px;
-    text-align: center;
-    letter-spacing: 2px;
-    color: var(--yazi);
-    background: #fff;
-  }
-  .barkod-input::placeholder { letter-spacing: 0; font-size: 17px; color: #98a2b3; }
-  .btn-kamera {
-    margin-top: 10px;
-    width: 100%;
-    min-height: 56px;
-    background: #dcfce7;
-    border: 2px solid var(--yesil);
-    color: var(--yesil-koyu);
-    border-radius: 12px;
-    font-size: 17px;
-    font-weight: 700;
-  }
-  .btn-kamera:active { background: #bbf7d0; }
-  .urun-bulundu {
-    margin-top: 10px;
-    background: #f0fdf4;
-    border: 2px solid #86efac;
-    border-radius: 12px;
-    padding: 12px 14px;
-  }
-  .urun-bulundu .ad { font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
-  .urun-bulundu .stok { font-size: 15px; color: var(--soluk); margin-top: 4px; }
-  .urun-bulundu .stok b { color: var(--yesil-koyu); font-size: 17px; }
-  .urun-bulundu .stok b.yok { color: var(--kirmizi); }
-  .urun-yok {
-    margin-top: 10px;
-    background: #fef2f2;
-    border: 2px solid #fca5a5;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #991b1b;
-  }
+  fieldset { border: 2px groove #fff; }
+  legend { font-weight: bold; padding: 0 6px; }
 
-  /* ===== CIKIS TIPI ===== */
-  .tip-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-  .tip-btn {
-    border: 2px solid var(--cizgi);
-    border-radius: 12px;
-    background: #fff;
-    min-height: 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--soluk);
-    padding: 8px 4px;
-  }
-  .tip-btn .emoji { font-size: 26px; }
-  .tip-btn .secildi { display: none; font-size: 12px; }
-  .tip-btn.secili .secildi { display: block; }
-  .tip-btn.secili.t-hediye { border-color: #9333ea; background: #f3e8ff; color: #7e22ce; }
-  .tip-btn.secili.t-satis  { border-color: #ea580c; background: #ffedd5; color: #c2410c; }
-  .tip-btn.secili.t-depo   { border-color: #2563eb; background: #dbeafe; color: #1d4ed8; }
+  .sayfa { display: none; }
+  .sayfa.active { display: block; }
+  .app-hidden { display: none !important; }
+  .bos { color: #555; padding: 16px 4px; }
 
-  /* ===== ADET ===== */
-  .adet-satir { display: flex; gap: 10px; align-items: stretch; }
-  .adet-btn {
-    width: 64px;
-    min-height: 56px;
-    border: 2px solid var(--cizgi);
-    border-radius: 12px;
-    background: #fff;
-    font-size: 30px;
-    font-weight: 700;
-    color: var(--yazi);
-    flex-shrink: 0;
-  }
-  .adet-btn:active { background: #eef2f6; }
-  .adet-input {
-    flex: 1;
-    min-width: 0;
-    border: 2px solid var(--cizgi);
-    border-radius: 12px;
-    font-size: 28px;
-    font-weight: 800;
-    text-align: center;
-    color: var(--yazi);
-  }
-  .not-input {
-    width: 100%;
-    border: 2px solid var(--cizgi);
-    border-radius: 12px;
-    padding: 13px 14px;
-    font-size: 16px;
-    color: var(--yazi);
-  }
+  .k-yesil   { color: #006600; font-weight: bold; }
+  .k-turuncu { color: #a05000; font-weight: bold; }
+  .k-kirmizi { color: #a00000; font-weight: bold; }
+  .success { color: #006600; }
+  .error   { color: #a00000; font-weight: bold; }
 
-  /* ===== ONAY BUTONU ===== */
-  .btn-onay {
-    width: 100%;
-    min-height: 64px;
-    border: none;
-    border-radius: 14px;
-    background: var(--yesil);
-    color: #fff;
-    font-size: 19px;
-    font-weight: 800;
-    padding: 10px;
-  }
-  .btn-onay:active { background: var(--yesil-koyu); }
-  .btn-onay:disabled { background: #d6dbe3; color: #828a96; }
+  /* Cikis tipi secimi: secili olan lacivert */
+  .tip-btn.secili { background: #000080; color: #fff; border-color: #404040 #fff #fff #404040; }
 
-  /* ===== FLASH (sabit ust bildirim) ===== */
-  .flash-alan {
-    position: fixed;
-    top: calc(10px + env(safe-area-inset-top)); left: 12px; right: 12px;
-    max-width: 600px;
-    margin: 0 auto;
-    z-index: 1200;
-  }
-  .flash {
-    border-radius: 12px;
-    padding: 14px;
-    font-size: 16px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-    animation: in 0.15s ease;
-  }
-  @keyframes in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
-  .flash.success { background: #dcfce7; border: 2px solid #4ade80; color: #14532d; }
-  .flash.error   { background: #fee2e2; border: 2px solid #f87171; color: #991b1b; }
-  .flash > span { min-width: 0; overflow-wrap: anywhere; }
-  .flash .geri-al {
-    background: #fff;
-    border: 2px solid var(--yesil);
-    color: var(--yesil-koyu);
-    border-radius: 10px;
-    min-height: 44px;
-    padding: 8px 14px;
-    font-size: 15px;
-    font-weight: 700;
+  /* Klasik tablo */
+  .tablo { width: 100%; border-collapse: collapse; background: #fff; }
+  .tablo th {
+    background: #d4d0c8;
+    border: 1px solid #808080;
+    text-align: left;
+    font-weight: bold;
     white-space: nowrap;
   }
+  .tablo td { border: 1px solid #b0aca4; vertical-align: top; overflow-wrap: anywhere; }
+  .tablo tr.secilebilir { cursor: pointer; }
+  .tablo tr.secilebilir:hover td { background: #ffffcc; }
+  .sag { text-align: right; }
 
-  /* ===== BUGUN OZETI ===== */
-  .ozet-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-  .ozet-kart {
-    background: var(--kart);
-    border: 1px solid var(--cizgi);
-    border-radius: 12px;
-    padding: 10px;
-    text-align: center;
-  }
-  .ozet-kart .emoji { font-size: 20px; }
-  .ozet-kart .sayi { font-size: 24px; font-weight: 800; margin-top: 2px; }
-  .ozet-kart .ad { font-size: 12px; color: var(--soluk); margin-top: 2px; }
-  .bolum-baslik {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--soluk);
-    letter-spacing: 1px;
-    margin-top: 4px;
-  }
-
-  /* ===== ARAMA / FILTRE ===== */
-  .arama {
-    width: 100%;
-    min-height: 50px;
-    border: 2px solid var(--cizgi);
-    border-radius: 12px;
-    padding: 0 14px;
-    font-size: 16px;
-    color: var(--yazi);
-    background: #fff;
-  }
-  .filtreler { display: flex; gap: 8px; flex-wrap: wrap; }
-  .filtre-btn {
-    border: 2px solid var(--cizgi);
-    border-radius: 999px;
-    background: #fff;
-    min-height: 44px;
-    padding: 0 16px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--soluk);
-  }
-  .filtre-btn.active { border-color: var(--yesil); background: #dcfce7; color: var(--yesil-koyu); }
-  .kayit-sayi { font-size: 14px; color: var(--soluk); }
-
-  /* ===== STOK LISTESI ===== */
-  .stok-kart {
-    background: var(--kart);
-    border: 1px solid var(--cizgi);
-    border-radius: 12px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-align: left;
-    width: 100%;
-  }
-  .stok-kart:active { background: #f8fafc; }
-  .stok-bilgi { flex: 1; min-width: 0; }
-  .stok-ad { font-size: 16px; font-weight: 600; overflow-wrap: break-word; }
-  .stok-alt { font-size: 13px; color: var(--soluk); margin-top: 3px; overflow-wrap: anywhere; }
-  .stok-adet { text-align: right; flex-shrink: 0; }
-  .stok-adet .n { font-size: 21px; font-weight: 800; }
-  .stok-adet .b { font-size: 11px; color: var(--soluk); }
-  .n-yesil { color: var(--yesil-koyu); }
-  .n-turuncu { color: var(--turuncu); }
-  .n-kirmizi { color: var(--kirmizi); }
-
-  /* ===== GECMIS LISTESI ===== */
-  .gecmis-kart {
-    background: var(--kart);
-    border: 1px solid var(--cizgi);
-    border-radius: 12px;
-    padding: 12px 14px;
-  }
-  .gecmis-ust { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .tip-chip { border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700; white-space: nowrap; }
-  .c-hediye { background: #f3e8ff; color: #7e22ce; }
-  .c-satis  { background: #ffedd5; color: #c2410c; }
-  .c-depo   { background: #dbeafe; color: #1d4ed8; }
-  .gecmis-tarih { font-size: 13px; color: var(--soluk); }
-  .gecmis-urun { font-size: 16px; font-weight: 600; margin-top: 8px; overflow-wrap: break-word; }
-  .gecmis-alt { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; }
-  .gecmis-detay { font-size: 14px; color: var(--soluk); }
-  .gecmis-detay b { color: var(--yazi); }
-  .gecmis-not { font-size: 14px; color: var(--soluk); margin-top: 6px; overflow-wrap: break-word; }
-  .btn-geri-al {
-    border: 2px solid var(--cizgi);
-    background: #fff;
-    border-radius: 10px;
-    min-height: 44px;
-    padding: 0 12px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--soluk);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .btn-geri-al:active { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
-  .bos { text-align: center; color: var(--soluk); padding: 36px 0; font-size: 16px; }
-
-  /* ===== MENU SAYFASI ===== */
-  .menu-btn {
-    width: 100%;
-    min-height: 58px;
-    background: var(--kart);
-    border: 1px solid var(--cizgi);
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 0 16px;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--yazi);
-    text-align: left;
-  }
-  .menu-btn:active { background: #f8fafc; }
-  .menu-btn .ikon { font-size: 22px; }
-  .menu-btn.tehlike { color: var(--kirmizi); border-color: #fecaca; }
-  .dosya-sar { position: relative; }
-  .dosya-sar input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-  .calisan-baslik {
-    font-size: 16px;
-    font-weight: 800;
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* ===== GIRIS ===== */
-  .giris-fon {
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
-  }
-  .giris-kutu {
-    background: var(--kart);
-    border: 1px solid var(--cizgi);
-    border-radius: 16px;
-    padding: 28px 24px;
-    width: 100%;
-    max-width: 360px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .giris-kutu .baslik { text-align: center; font-size: 26px; font-weight: 800; }
-  .giris-kutu .baslik .ki { color: var(--yesil-koyu); }
-  .giris-kutu .alt-yazi { text-align: center; font-size: 13px; color: var(--soluk); }
-  .giris-input {
-    border: 2px solid var(--cizgi);
-    border-radius: 12px;
-    padding: 14px;
-    font-size: 20px;
-    text-align: center;
-    letter-spacing: 3px;
-    color: var(--yazi);
-  }
-  .giris-btn {
-    background: var(--yesil);
-    border: none;
-    color: #fff;
-    border-radius: 12px;
-    min-height: 56px;
-    font-size: 18px;
-    font-weight: 800;
-  }
-  .giris-btn:active { background: var(--yesil-koyu); }
-  .giris-hata { color: var(--kirmizi); font-size: 15px; text-align: center; min-height: 20px; font-weight: 600; }
-  .app-hidden { display: none; }
-
-  /* ===== KAMERA ===== */
+  /* Kamera katmani */
   .kamera-fon {
     position: fixed;
     inset: 0;
-    background: rgba(8, 11, 18, 0.96);
+    background: rgba(0, 0, 0, 0.85);
     z-index: 1100;
     display: none;
     flex-direction: column;
     align-items: center;
     overflow-y: auto;
     padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
-    gap: 14px;
   }
-  /* margin:auto cifti — sigarsa ortalar, sigmazsa ustten baslar ve scroll edilir */
-  .kamera-kutu { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: auto; }
-  .kamera-baslik { font-size: 18px; font-weight: 800; color: #fff; }
-  #kamera-reader { width: 100%; border-radius: 14px; overflow: hidden; }
-  #kamera-reader video { border-radius: 14px; max-height: 45vh; object-fit: cover; }
-  .kamera-ipucu { font-size: 15px; color: #cbd5e1; text-align: center; }
-  .btn-kamera-kapat {
+  .kamera-pencere {
     width: 100%;
     max-width: 440px;
-    background: var(--kirmizi);
-    border: none;
-    color: #fff;
-    border-radius: 12px;
-    min-height: 58px;
-    font-size: 18px;
-    font-weight: 800;
-    flex-shrink: 0;
-    margin-bottom: auto;
+    background: #d4d0c8;
+    border: 2px solid;
+    border-color: #fff #404040 #404040 #fff;
+    margin-top: auto;
+  }
+  .kamera-pencere .baslik-cubugu { padding: 5px 8px; font-size: 14px; }
+  .kamera-pencere .kamera-ic { padding: 10px; }
+  /* Videoyu CSS ile kirpma: qrbox cercevesi goruntuyle eslesmeli.
+     Yukseklik, taramada aspectRatio:1 ayariyla sinirlaniyor. */
+  #kamera-reader { width: 100%; background: #000; }
+  .kamera-ipucu { font-size: 13px; padding: 8px 2px 2px; }
+  .btn-kamera-kapat { width: 100%; margin-top: 10px; min-height: 48px; font-size: 16px; font-weight: bold; flex-shrink: 0; }
+  .kamera-bosluk { margin-bottom: auto; }
+
+  /* Giris (oturum acma) penceresi */
+  .giris-fon {
+    position: fixed;
+    inset: 0;
+    background: #008080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  .giris-pencere {
+    width: 100%;
+    max-width: 340px;
+    background: #d4d0c8;
+    border: 2px solid;
+    border-color: #fff #404040 #404040 #fff;
+  }
+  .giris-pencere .baslik-cubugu { padding: 5px 8px; font-size: 14px; }
+  .giris-ic { padding: 16px; }
+  .giris-ic label { display: block; margin-bottom: 6px; }
+  .giris-ic .giris-kutusu { width: 100%; padding: 10px; font-size: 16px; }
+  .giris-ic .btn { width: 100%; margin-top: 12px; min-height: 44px; font-size: 15px; font-weight: bold; }
+  .giris-hata { color: #a00000; font-weight: bold; min-height: 18px; margin-top: 10px; font-size: 13px; }
+
+  /* ===================== MASAUSTU (>= 768px) ===================== */
+  @media (min-width: 768px) {
+    .sadece-mobil { display: none !important; }
+
+    body { background: #008080; font-size: 12px; padding: 16px 16px 46px; }
+
+    .pencere {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: #d4d0c8;
+      border: 2px solid;
+      border-color: #fff #404040 #404040 #fff;
+    }
+    .baslik-cubugu { padding: 4px 8px; font-size: 13px; }
+
+    .arac-cubugu {
+      display: flex;
+      gap: 4px;
+      padding: 5px 6px;
+      border-bottom: 1px solid #808080;
+      align-items: center;
+    }
+    .arac-cubugu .btn { padding: 4px 12px; font-size: 12px; }
+    .arac-cubugu .bosluk { flex: 1; }
+
+    .sekmeler { padding: 6px 6px 0; display: flex; gap: 2px; }
+    .sekme {
+      background: #d4d0c8;
+      border: 2px solid;
+      border-color: #fff #404040 transparent #fff;
+      padding: 5px 18px;
+      font-size: 12px;
+      color: #333;
+    }
+    .sekme.active { font-weight: bold; background: #ece9e2; color: #000; }
+
+    .icerik-alani {
+      background: #ece9e2;
+      border-top: 2px solid #fff;
+      padding: 12px;
+      min-height: 420px;
+    }
+
+    fieldset { padding: 12px; margin-bottom: 12px; }
+
+    /* Form satirlari: etiket solda */
+    .satir { display: flex; align-items: center; margin-bottom: 7px; }
+    .satir > label { width: 110px; text-align: right; padding-right: 10px; flex-shrink: 0; }
+    .alan-ic { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+
+    #barkod-input { width: 240px; padding: 4px 6px; font-size: 14px; font-family: 'Courier New', monospace; }
+    .btn-kamera { padding: 4px 12px; font-size: 12px; }
+    .deger { padding: 4px 6px; min-width: 240px; max-width: 100%; min-height: 24px; }
+    .tip-btn { padding: 5px 16px; font-size: 12px; }
+    .adet-btn { width: 28px; height: 26px; font-size: 14px; font-weight: bold; }
+    #adet-input { width: 70px; padding: 4px; font-size: 14px; text-align: center; }
+    #not-input { width: 100%; max-width: 420px; padding: 4px 6px; font-size: 12px; }
+    .btn-onay { padding: 8px 28px; font-size: 13px; font-weight: bold; }
+
+    .ozet-tablo { border-collapse: collapse; }
+    .ozet-tablo th, .ozet-tablo td { border: 1px solid #808080; padding: 3px 14px; text-align: center; }
+    .ozet-tablo th { background: #d4d0c8; }
+    .ozet-tablo td { background: #fff; font-weight: bold; }
+
+    .liste-arac { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .liste-arac .giris-kutusu { padding: 4px 6px; font-size: 12px; width: 280px; }
+    .liste-arac select { padding: 3px 4px; font-size: 12px; }
+    .kayit-sayi { color: #333; }
+    .ipucu { color: #555; margin-bottom: 6px; }
+
+    .tablo { font-size: 12px; }
+    .tablo th { padding: 4px 8px; }
+    .tablo td { padding: 3px 8px; }
+    .btn-kucuk { padding: 2px 10px; font-size: 11px; }
+
+    /* Durum cubugu (alt, sabit) */
+    #durum-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #d4d0c8;
+      border-top: 2px solid #fff;
+      padding: 5px 10px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 100;
+      min-height: 30px;
+    }
+    #durum-bar .btn { padding: 2px 12px; font-size: 11px; }
+
+    /* Mobil listeleri masaustunde tablo halinde ciziyoruz; kart stilleri gerekmez */
+  }
+
+  /* ===================== MOBIL (< 768px) ===================== */
+  /* .98 kesri: kesirli viewport genisliklerinde (zoom/dPR) iki sorgu arasinda bosluk kalmasin */
+  @media (max-width: 767.98px) {
+    .sadece-masa { display: none !important; }
+
+    body { font-size: 15px; }
+
+    .pencere { border: none; background: #d4d0c8; }
+    .baslik-cubugu { padding: 9px 12px; font-size: 16px; text-align: center; }
+
+    .icerik-alani { padding: 10px 10px calc(76px + env(safe-area-inset-bottom)); }
+
+    fieldset { padding: 10px; margin-bottom: 12px; background: #ece9e2; }
+    legend { font-size: 14px; }
+
+    /* Form satirlari: etiket ustte, alanlar buyuk */
+    .satir { margin-bottom: 12px; }
+    .satir > label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+    .alan-ic { display: flex; align-items: center; gap: 8px; }
+
+    #barkod-input { width: 100%; min-width: 0; padding: 12px 10px; font-size: 19px; font-family: 'Courier New', monospace; text-align: center; }
+    .btn-kamera { width: 100%; min-height: 52px; font-size: 16px; font-weight: bold; margin-top: 8px; }
+    .satir-kamera .alan-ic { display: block; }
+    .deger { padding: 11px 10px; font-size: 16px; width: 100%; }
+    .tip-grup { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; width: 100%; }
+    .tip-btn { min-height: 60px; font-size: 14px; font-weight: bold; padding: 4px 2px; }
+    .adet-btn { width: 60px; min-height: 54px; font-size: 26px; font-weight: bold; flex-shrink: 0; }
+    #adet-input { flex: 1; min-width: 0; padding: 10px; font-size: 24px; font-weight: bold; text-align: center; }
+    #not-input { width: 100%; padding: 12px 10px; font-size: 16px; }
+    .btn-onay { width: 100%; min-height: 62px; font-size: 17px; font-weight: bold; }
+
+    .ozet-tablo { border-collapse: collapse; width: 100%; }
+    .ozet-tablo th, .ozet-tablo td { border: 1px solid #808080; padding: 7px 4px; text-align: center; font-size: 13px; }
+    .ozet-tablo th { background: #d4d0c8; }
+    .ozet-tablo td { background: #fff; font-weight: bold; font-size: 16px; }
+
+    .liste-arac { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+    .liste-arac .giris-kutusu { width: 100%; padding: 12px 10px; font-size: 16px; }
+    .liste-arac select { width: 100%; padding: 12px 10px; font-size: 16px; background: #fff; border: 2px solid; border-color: #404040 #fff #fff #404040; }
+    .kayit-sayi { font-size: 13px; color: #333; }
+    .ipucu { display: none; }
+
+    /* Mobil kartlar */
+    .m-kart {
+      background: #fff;
+      border: 2px solid;
+      border-color: #404040 #fff #fff #404040;
+      padding: 10px;
+      margin-bottom: 8px;
+      width: 100%;
+      text-align: left;
+      font-size: 15px;
+      color: #000;
+    }
+    .m-kart .m-ust { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: #333; margin-bottom: 5px; }
+    .m-kart .m-ad { font-weight: bold; overflow-wrap: anywhere; }
+    .m-kart .m-alt { font-size: 13px; color: #333; margin-top: 5px; overflow-wrap: anywhere; }
+    .m-kart .m-stok { float: right; font-size: 19px; margin-left: 8px; }
+    .m-kart .m-satir-alt { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; }
+    .btn-kucuk { min-height: 44px; padding: 6px 14px; font-size: 14px; }
+
+    .calisan-ad { font-weight: bold; font-size: 16px; margin: 12px 0 6px; }
+
+    .menu-buton { display: block; width: 100%; min-height: 56px; font-size: 16px; font-weight: bold; margin-bottom: 10px; text-align: center; }
+    .menu-buton.tehlike { color: #a00000; }
+    .dosya-sar { position: relative; margin-bottom: 10px; }
+    .dosya-sar .menu-buton { margin-bottom: 0; }
+    .dosya-sar input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+    .bolum-baslik { font-weight: bold; font-size: 13px; margin: 16px 0 8px; letter-spacing: 1px; }
+
+    /* Alt gezinme cubugu */
+    .alt-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #d4d0c8;
+      border-top: 2px solid #fff;
+      display: flex;
+      gap: 3px;
+      padding: 5px 5px calc(5px + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+    .alt-nav .btn { flex: 1; min-height: 54px; font-size: 14px; font-weight: bold; }
+    .alt-nav .btn.active { background: #000080; color: #fff; border-color: #404040 #fff #fff #404040; }
+
+    /* Mobil bildirim kutusu (ustte) */
+    #flash-mobil { position: fixed; top: calc(8px + env(safe-area-inset-top)); left: 8px; right: 8px; z-index: 1200; }
+    #flash-mobil .flash {
+      background: #d4d0c8;
+      border: 2px solid;
+      border-color: #fff #404040 #404040 #fff;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    #flash-mobil .flash > span { min-width: 0; overflow-wrap: anywhere; }
+    #flash-mobil .flash.success > span { color: #006600; }
+    #flash-mobil .flash.error > span { color: #a00000; }
+    #flash-mobil .btn { min-height: 44px; padding: 6px 14px; font-size: 14px; font-weight: bold; white-space: nowrap; }
+
+    /* Masaustu tablolari mobilde kullanilmiyor ama tasma olursa diye */
+    .tablo { font-size: 13px; }
+    .tablo th, .tablo td { padding: 6px; }
   }
 </style>
 </head>
 <body>
 
-<!-- BILDIRIM -->
-<div class="flash-alan" id="flash-alan"></div>
+<!-- MOBIL BILDIRIM -->
+<div id="flash-mobil" class="sadece-mobil"></div>
 
-<!-- GIRIS -->
+<!-- OTURUM ACMA -->
 <div class="giris-fon" id="login-overlay">
-  <div class="giris-kutu">
-    <div class="baslik"><span class="ki">Ki</span> Stok</div>
-    <div class="alt-yazi">Depo Yönetim Sistemi</div>
-    <input class="giris-input" id="login-sifre" type="password" placeholder="Şifre" onkeydown="if(event.key==='Enter')girisYap()">
-    <button class="giris-btn" onclick="girisYap()">Giriş Yap</button>
-    <div class="giris-hata" id="login-err"></div>
+  <div class="giris-pencere">
+    <div class="baslik-cubugu">Ki Stok Sistemi — Oturum Aç</div>
+    <div class="giris-ic">
+      <label for="login-sifre">Şifre:</label>
+      <input class="giris-kutusu" id="login-sifre" type="password" onkeydown="if(event.key==='Enter')girisYap()">
+      <button class="btn" onclick="girisYap()">Tamam</button>
+      <div class="giris-hata" id="login-err"></div>
+    </div>
   </div>
 </div>
 
 <!-- KAMERA -->
 <div class="kamera-fon" id="kamera-overlay">
-  <div class="kamera-kutu">
-    <div class="kamera-baslik">📷 Barkodu Okutun</div>
-    <div id="kamera-reader"></div>
-    <div class="kamera-ipucu">Barkodu çerçevenin içine getirin, otomatik okunur</div>
+  <div class="kamera-pencere">
+    <div class="baslik-cubugu">Barkod Tara</div>
+    <div class="kamera-ic">
+      <div id="kamera-reader"></div>
+      <div class="kamera-ipucu">Barkodu çerçevenin içine getirin, otomatik okunur.</div>
+      <button class="btn btn-kamera-kapat" onclick="kameraKapat()">Kapat</button>
+    </div>
   </div>
-  <button class="btn-kamera-kapat" onclick="kameraKapat()">✕ Kapat</button>
+  <div class="kamera-bosluk"></div>
 </div>
 
 <!-- UYGULAMA -->
 <div id="app" class="app-hidden">
 
-<div class="ust"><span class="ki">Ki</span> Stok</div>
+<div class="pencere">
+  <div class="baslik-cubugu">Ki Stok Sistemi — Depo Yönetim</div>
 
-<!-- SAYFA: OKUT -->
-<div id="page-okut" class="icerik active">
-
-  <div class="kart">
-    <div class="adim"><span class="adim-no">1</span> Ürünü okutun</div>
-    <input class="barkod-input" id="barkod-input" inputmode="numeric" placeholder="Barkodu yazın..."
-           oninput="barkodDegisti()" onkeydown="barkodKeyDown(event)">
-    <button class="btn-kamera" onclick="kameraAc()">📷 Kamera ile Tara</button>
-    <div id="urun-durum"></div>
+  <!-- MASAUSTU: arac cubugu -->
+  <div class="arac-cubugu sadece-masa">
+    <div class="dosya-sar" style="position:relative;">
+      <button class="btn">Excel Yükle</button>
+      <input type="file" accept=".xlsx,.xls" onchange="excelYukle(event)"
+             style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;">
+    </div>
+    <button class="btn" onclick="excelIndir()">Rapor İndir</button>
+    <button class="btn btn-sync" onclick="sheetsSenkron()">Sheets Senkron</button>
+    <div class="bosluk"></div>
+    <button class="btn" onclick="cikisOnayla()">Çıkış</button>
   </div>
 
-  <div class="kart">
-    <div class="adim"><span class="adim-no">2</span> Çıkış tipini seçin</div>
-    <div class="tip-grid">
-      <button class="tip-btn t-hediye" id="tip-hediye" onclick="setTip('hediye')">
-        <span class="emoji">🎁</span><span>Hediye</span><span class="secildi">✓ Seçili</span>
-      </button>
-      <button class="tip-btn t-satis" id="tip-satis" onclick="setTip('satis')">
-        <span class="emoji">🏪</span><span>Satış</span><span class="secildi">✓ Seçili</span>
-      </button>
-      <button class="tip-btn t-depo" id="tip-depo" onclick="setTip('depo')">
-        <span class="emoji">🏭</span><span>Depo Satışı</span><span class="secildi">✓ Seçili</span>
-      </button>
-    </div>
+  <!-- MASAUSTU: sekmeler -->
+  <div class="sekmeler sadece-masa">
+    <button class="sekme tab-okut active" onclick="setTab('okut')">Barkod Okut</button>
+    <button class="sekme tab-stok" onclick="setTab('stok')">Stok</button>
+    <button class="sekme tab-gecmis" onclick="setTab('gecmis')">Çıkış Geçmişi</button>
+    <button class="sekme tab-calisan" onclick="setTab('calisan')">Çalışan</button>
   </div>
 
-  <div class="kart">
-    <div class="adim"><span class="adim-no">3</span> Kaç adet?</div>
-    <div class="adet-satir">
-      <button class="adet-btn" onclick="adetDegistir(-1)">−</button>
-      <input class="adet-input" id="adet-input" type="number" inputmode="numeric" min="1" value="1">
-      <button class="adet-btn" onclick="adetDegistir(1)">+</button>
-    </div>
-    <div style="margin-top:10px;">
-      <input class="not-input" id="not-input" placeholder="Not (isteğe bağlı): müşteri adı, açıklama...">
-    </div>
-  </div>
+  <div class="icerik-alani">
 
-  <button class="btn-onay" id="islem-btn" onclick="islemYap()" disabled>Önce ürün okutun</button>
+    <!-- SAYFA: OKUT -->
+    <div id="page-okut" class="sayfa active">
+      <fieldset>
+        <legend>Çıkış İşlemi</legend>
+        <div class="satir satir-kamera">
+          <label for="barkod-input">Barkod:</label>
+          <div class="alan-ic">
+            <input class="giris-kutusu" id="barkod-input" inputmode="numeric"
+                   oninput="barkodDegisti()" onkeydown="barkodKeyDown(event)">
+            <button class="btn btn-kamera sadece-mobil" onclick="kameraAc()">KAMERA İLE TARA</button>
+            <button class="btn btn-kamera sadece-masa" onclick="kameraAc()">Kamera</button>
+          </div>
+        </div>
+        <div class="satir">
+          <label>Ürün:</label>
+          <div class="alan-ic"><span class="deger" id="urun-goster">—</span></div>
+        </div>
+        <div class="satir">
+          <label>Mevcut Stok:</label>
+          <div class="alan-ic"><span class="deger" id="stok-goster">—</span></div>
+        </div>
+        <div class="satir">
+          <label>Çıkış Tipi:</label>
+          <div class="alan-ic tip-grup">
+            <button class="btn tip-btn" id="tip-hediye" onclick="setTip('hediye')">HEDİYE</button>
+            <button class="btn tip-btn" id="tip-satis" onclick="setTip('satis')">SATIŞ</button>
+            <button class="btn tip-btn" id="tip-depo" onclick="setTip('depo')">DEPO SATIŞI</button>
+          </div>
+        </div>
+        <div class="satir">
+          <label for="adet-input">Adet:</label>
+          <div class="alan-ic">
+            <button class="btn adet-btn" onclick="adetDegistir(-1)">&minus;</button>
+            <input class="giris-kutusu" id="adet-input" type="number" inputmode="numeric" min="1" value="1">
+            <button class="btn adet-btn" onclick="adetDegistir(1)">+</button>
+          </div>
+        </div>
+        <div class="satir">
+          <label for="not-input">Not:</label>
+          <div class="alan-ic"><input class="giris-kutusu" id="not-input" placeholder="İsteğe bağlı"></div>
+        </div>
+        <div class="satir">
+          <label class="sadece-masa"></label>
+          <div class="alan-ic">
+            <button class="btn btn-onay" id="islem-btn" onclick="islemYap()" disabled>Önce ürün okutun</button>
+          </div>
+        </div>
+      </fieldset>
 
-  <div class="bolum-baslik">BUGÜNKÜ ÇIKIŞLAR</div>
-  <div class="ozet-grid">
-    <div class="ozet-kart">
-      <div class="emoji">🎁</div>
-      <div class="sayi" style="color:#7e22ce;" id="ozet-hediye">0</div>
-      <div class="ad">Hediye · <span id="ozet-hediye-islem">0</span> işlem</div>
+      <fieldset>
+        <legend>Bugünkü Çıkışlar</legend>
+        <table class="ozet-tablo">
+          <tr><th></th><th>Hediye</th><th>Satış</th><th>Depo Satışı</th></tr>
+          <tr><th>Adet</th><td id="ozet-hediye">0</td><td id="ozet-satis">0</td><td id="ozet-depo">0</td></tr>
+          <tr><th>İşlem</th><td id="ozet-hediye-islem">0</td><td id="ozet-satis-islem">0</td><td id="ozet-depo-islem">0</td></tr>
+        </table>
+      </fieldset>
     </div>
-    <div class="ozet-kart">
-      <div class="emoji">🏪</div>
-      <div class="sayi" style="color:#c2410c;" id="ozet-satis">0</div>
-      <div class="ad">Satış · <span id="ozet-satis-islem">0</span> işlem</div>
+
+    <!-- SAYFA: STOK -->
+    <div id="page-stok" class="sayfa">
+      <div class="liste-arac">
+        <input class="giris-kutusu" id="stok-arama" placeholder="Ürün adı veya barkod arayın" oninput="renderStok()">
+        <span class="kayit-sayi" id="stok-sayi"></span>
+      </div>
+      <div class="ipucu">Bir satıra tıklayınca ürün, okutma ekranına seçilir.</div>
+      <div id="stok-liste"></div>
     </div>
-    <div class="ozet-kart">
-      <div class="emoji">🏭</div>
-      <div class="sayi" style="color:#1d4ed8;" id="ozet-depo">0</div>
-      <div class="ad">Depo · <span id="ozet-depo-islem">0</span> işlem</div>
+
+    <!-- SAYFA: GECMIS -->
+    <div id="page-gecmis" class="sayfa">
+      <div class="liste-arac">
+        <input class="giris-kutusu" id="gecmis-arama" placeholder="Ürün veya barkod arayın" oninput="renderGecmis()">
+        <select id="gecmis-filtre" onchange="renderGecmis()">
+          <option value="hepsi">Tümü</option>
+          <option value="hediye">Hediye</option>
+          <option value="satis">Satış</option>
+          <option value="depo">Depo Satışı</option>
+        </select>
+        <span class="kayit-sayi" id="kayit-sayi"></span>
+      </div>
+      <div id="gecmis-liste"></div>
     </div>
+
+    <!-- SAYFA: CALISAN (yalniz masaustu sekmesi) -->
+    <div id="page-calisan" class="sayfa">
+      <div id="calisan-liste"></div>
+    </div>
+
+    <!-- SAYFA: MENU (yalniz mobil) -->
+    <div id="page-menu" class="sayfa">
+      <div class="bolum-baslik">İŞLEMLER</div>
+      <div class="dosya-sar">
+        <button class="btn menu-buton">Excel ile Stok Listesi Yükle</button>
+        <input type="file" accept=".xlsx,.xls" onchange="excelYukle(event)">
+      </div>
+      <button class="btn menu-buton" onclick="excelIndir()">Rapor İndir (Excel)</button>
+      <button class="btn menu-buton btn-sync" onclick="sheetsSenkron()">Sheets Senkron</button>
+
+      <div class="bolum-baslik">ÇALIŞAN STOKLARI</div>
+      <div id="menu-calisan-liste"></div>
+
+      <div class="bolum-baslik">HESAP</div>
+      <button class="btn menu-buton tehlike" onclick="cikisOnayla()">Çıkış Yap</button>
+    </div>
+
   </div>
 </div>
 
-<!-- SAYFA: STOK -->
-<div id="page-stok" class="icerik">
-  <input class="arama" id="stok-arama" placeholder="🔍 Ürün adı veya barkod arayın..." oninput="renderStok()">
-  <div class="kayit-sayi" id="stok-sayi"></div>
-  <div id="stok-liste" style="display:flex;flex-direction:column;gap:8px;"></div>
-</div>
+<!-- MASAUSTU: durum cubugu -->
+<div id="durum-bar" class="sadece-masa"><span id="durum-mesaj">Hazır</span></div>
 
-<!-- SAYFA: GECMIS -->
-<div id="page-gecmis" class="icerik">
-  <input class="arama" id="gecmis-arama" placeholder="🔍 Ürün veya barkod arayın..." oninput="renderGecmis()">
-  <div class="filtreler">
-    <button class="filtre-btn active" id="f-hepsi" onclick="setFiltre('hepsi')">Tümü</button>
-    <button class="filtre-btn" id="f-hediye" onclick="setFiltre('hediye')">🎁 Hediye</button>
-    <button class="filtre-btn" id="f-satis" onclick="setFiltre('satis')">🏪 Satış</button>
-    <button class="filtre-btn" id="f-depo" onclick="setFiltre('depo')">🏭 Depo</button>
-  </div>
-  <div class="kayit-sayi" id="kayit-sayi"></div>
-  <div id="gecmis-liste" style="display:flex;flex-direction:column;gap:8px;"></div>
-</div>
-
-<!-- SAYFA: MENU -->
-<div id="page-menu" class="icerik">
-  <div class="bolum-baslik">İŞLEMLER</div>
-  <div class="dosya-sar">
-    <button class="menu-btn"><span class="ikon">📂</span> Excel ile Stok Listesi Yükle</button>
-    <input type="file" accept=".xlsx,.xls" onchange="excelYukle(event)">
-  </div>
-  <button class="menu-btn" onclick="excelIndir()"><span class="ikon">⬇️</span> Rapor İndir (Excel)</button>
-  <button class="menu-btn" id="btn-sync" onclick="sheetsSenkron()"><span class="ikon">🔄</span> Google Sheets'e Gönder</button>
-
-  <div class="bolum-baslik">ÇALIŞAN STOKLARI</div>
-  <div id="calisan-liste" style="display:flex;flex-direction:column;gap:8px;"></div>
-
-  <div class="bolum-baslik">HESAP</div>
-  <button class="menu-btn tehlike" onclick="cikisOnayla()"><span class="ikon">🚪</span> Çıkış Yap</button>
-</div>
-
-<!-- ALT MENU -->
-<nav class="alt-menu">
-  <button class="alt-btn active" id="nav-okut" onclick="setTab('okut')"><span class="ikon">📷</span>Okut</button>
-  <button class="alt-btn" id="nav-stok" onclick="setTab('stok')"><span class="ikon">📦</span>Stok</button>
-  <button class="alt-btn" id="nav-gecmis" onclick="setTab('gecmis')"><span class="ikon">📋</span>Geçmiş</button>
-  <button class="alt-btn" id="nav-menu" onclick="setTab('menu')"><span class="ikon">☰</span>Menü</button>
+<!-- MOBIL: alt gezinme -->
+<nav class="alt-nav sadece-mobil">
+  <button class="btn tab-okut active" onclick="setTab('okut')">OKUT</button>
+  <button class="btn tab-stok" onclick="setTab('stok')">STOK</button>
+  <button class="btn tab-gecmis" onclick="setTab('gecmis')">GEÇMİŞ</button>
+  <button class="btn tab-menu" onclick="setTab('menu')">MENÜ</button>
 </nav>
 
 </div>
@@ -640,15 +552,26 @@ let stoklar = [];
 let calisanlar = [];
 let islemler = [];
 let seciliTip = 'satis';
-let filtreTip = 'hepsi';
+let aktifSayfa = 'okut';
 
 // Fiziksel klavye/fare var mi? (mobilde otomatik odak klavyeyi acmasin diye)
 const FARE = window.matchMedia('(pointer: fine)').matches;
 
+// Mobil mi masaustu mu? Liste cizimleri buna gore tablo/kart secer.
+// Masaustu kirilim noktasina (CSS'teki min-width:768px) baglandi ki JS ile CSS hep ayni karari versin.
+const mqMasa = window.matchMedia('(min-width: 768px)');
+function mobilMi() { return !mqMasa.matches; }
+mqMasa.addEventListener('change', () => {
+  // Aktif sayfa bu duzende yoksa uygun sayfaya gec
+  if (mobilMi() && aktifSayfa === 'calisan') setTab('menu');
+  else if (!mobilMi() && aktifSayfa === 'menu') setTab('okut');
+  hepsiniCiz();
+});
+
 const TIPLER = {
-  hediye: { label: 'Hediye',      emoji: '🎁' },
-  satis:  { label: 'Satış',       emoji: '🏪' },
-  depo:   { label: 'Depo Satışı', emoji: '🏭' },
+  hediye: { label: 'Hediye' },
+  satis:  { label: 'Satış' },
+  depo:   { label: 'Depo Satışı' },
 };
 
 // HTML kacis (urun adi / not gibi serbest metinler icin)
@@ -727,9 +650,10 @@ function hepsiniCiz() {
 
 // ===== SEKME =====
 function setTab(id) {
-  ['okut', 'stok', 'gecmis', 'menu'].forEach((t) => {
+  aktifSayfa = id;
+  ['okut', 'stok', 'gecmis', 'calisan', 'menu'].forEach((t) => {
     document.getElementById('page-' + t).classList.toggle('active', t === id);
-    document.getElementById('nav-' + t).classList.toggle('active', t === id);
+    document.querySelectorAll('.tab-' + t).forEach((b) => b.classList.toggle('active', t === id));
   });
   window.scrollTo(0, 0);
   if (id === 'okut' && FARE) document.getElementById('barkod-input').focus();
@@ -758,17 +682,25 @@ function seciliUrun() {
 function barkodDegisti() {
   const val = document.getElementById('barkod-input').value.trim();
   const u = seciliUrun();
-  const durum = document.getElementById('urun-durum');
+  const urunEl = document.getElementById('urun-goster');
+  const stokEl = document.getElementById('stok-goster');
+  urunEl.classList.remove('bulunamadi');
+  stokEl.classList.remove('bulunamadi');
   if (u) {
-    const stokCls = u.stok === 0 ? 'yok' : '';
-    durum.innerHTML = '<div class="urun-bulundu">' +
-      '<div class="ad">✅ ' + esc(u.urun) + '</div>' +
-      '<div class="stok">Depoda: <b class="' + stokCls + '">' + sayiYaz(u.stok) + ' adet</b>' +
-      (u.stok === 0 ? ' — stok tükendi!' : '') + '</div></div>';
+    urunEl.textContent = u.urun;
+    if (u.stok === 0) {
+      stokEl.textContent = '0 adet (STOK YOK)';
+      stokEl.classList.add('bulunamadi');
+    } else {
+      stokEl.textContent = sayiYaz(u.stok) + ' adet';
+    }
   } else if (val.length >= 6) {
-    durum.innerHTML = '<div class="urun-yok">❌ Bu barkod stok listesinde yok</div>';
+    urunEl.textContent = 'BARKOD BULUNAMADI';
+    urunEl.classList.add('bulunamadi');
+    stokEl.textContent = '—';
   } else {
-    durum.innerHTML = '';
+    urunEl.textContent = '—';
+    stokEl.textContent = '—';
   }
   guncelleBtn();
 }
@@ -782,13 +714,13 @@ function barkodKeyDown(e) {
   }
 }
 
-// Stok listesinden urune dokununca okutma ekranina sec
+// Stok listesinden urune tiklayinca okutma ekranina sec
 function urunSec(barkod) {
   document.getElementById('barkod-input').value = barkod;
   setTab('okut');
   barkodDegisti();
   const u = seciliUrun();
-  if (u) showFlash('success', 'Seçildi: ' + u.urun.slice(0, 50));
+  if (u) showFlash('success', 'Seçildi: ' + u.urun.slice(0, 60));
 }
 
 // ===== ADET =====
@@ -808,9 +740,8 @@ function guncelleBtn() {
     return;
   }
   const adet = Math.max(1, parseInt(document.getElementById('adet-input').value, 10) || 1);
-  const t = TIPLER[seciliTip];
   btn.disabled = false;
-  btn.textContent = '✓ STOKTAN DÜŞ — ' + adet + ' adet ' + t.label;
+  btn.textContent = 'STOKTAN DÜŞ (' + adet + ' adet ' + TIPLER[seciliTip].label + ')';
 }
 
 // ===== ISLEM YAP =====
@@ -828,7 +759,7 @@ async function islemYap() {
   islemSuruyor = true;
   const btn = document.getElementById('islem-btn');
   btn.disabled = true;
-  btn.textContent = '⏳ Kaydediliyor...';
+  btn.textContent = 'Kaydediliyor...';
 
   try {
     const r = await api('/islem', {
@@ -842,9 +773,7 @@ async function islemYap() {
       tip, adet, not, oncekiStok: r.oncekiStok, yeniStok: r.yeniStok,
     });
 
-    showFlash('success',
-      '✓ ' + adet + ' adet düşüldü (' + TIPLER[tip].label + ')',
-      r.id);
+    showFlash('success', adet + ' adet düşüldü (' + TIPLER[tip].label + ') — ' + r.urun.slice(0, 40), r.id);
     document.getElementById('barkod-input').value = '';
     document.getElementById('not-input').value = '';
     document.getElementById('adet-input').value = 1;
@@ -864,6 +793,12 @@ async function islemYap() {
 // ===== GERI AL =====
 let geriAlSuruyor = false;
 
+// Bildirimdeki Geri Al dugmesi: tum geri-al dugmelerini gizle, sormadan geri al
+function geriAlTikla(id) {
+  document.querySelectorAll('.geri-al-btn').forEach((b) => { b.style.display = 'none'; });
+  islemGeriAl(id, true);
+}
+
 async function islemGeriAl(id, sormadan) {
   if (geriAlSuruyor) return;
   if (!sormadan && !confirm('Bu çıkış geri alınsın mı?\nDüşülen adet stoğa geri eklenecek.')) return;
@@ -878,7 +813,7 @@ async function islemGeriAl(id, sormadan) {
     renderStok();
     renderGecmis();
     barkodDegisti();
-    showFlash('success', '↩ Geri alındı: ' + r.adet + ' adet stoğa eklendi');
+    showFlash('success', 'Geri alındı: ' + r.adet + ' adet stoğa eklendi');
   } catch (e) {
     showFlash('error', e.message);
   } finally {
@@ -897,59 +832,82 @@ function guncelleOzet() {
   });
 }
 
-// ===== FLASH =====
+// ===== BILDIRIM =====
+// Masaustu: alttaki durum cubugu (kalici). Mobil: ustte gecici kutu.
 let flashTimer = null;
 function showFlash(type, msg, geriAlId) {
-  const alan = document.getElementById('flash-alan');
-  const geriAlBtn = geriAlId
-    ? '<button class="geri-al" onclick="islemGeriAl(' + geriAlId + ', true); this.parentElement.remove();">↩ Geri Al</button>'
+  const btnHtml = geriAlId
+    ? ' <button class="btn geri-al-btn" onclick="geriAlTikla(' + Number(geriAlId) + ')">Geri Al</button>'
     : '';
-  alan.innerHTML = '<div class="flash ' + type + '"><span>' + esc(msg) + '</span>' + geriAlBtn + '</div>';
+  document.getElementById('durum-mesaj').innerHTML =
+    '<span class="' + type + '">' + esc(msg) + '</span>' + btnHtml;
+  const m = document.getElementById('flash-mobil');
+  m.innerHTML = '<div class="flash ' + type + '"><span>' + esc(msg) + '</span>' + btnHtml + '</div>';
   if (flashTimer) clearTimeout(flashTimer);
-  flashTimer = setTimeout(() => { alan.innerHTML = ''; }, geriAlId ? 6000 : 3500);
+  flashTimer = setTimeout(() => {
+    m.innerHTML = '';
+    // Masaustu durum cubugundaki Geri Al dugmesi de suresiz kalmasin
+    document.querySelectorAll('#durum-mesaj .geri-al-btn').forEach((b) => { b.style.display = 'none'; });
+  }, geriAlId ? 6000 : 3500);
 }
 
 // ===== GECMIS =====
-function setFiltre(tip) {
-  filtreTip = tip;
-  ['hepsi', 'hediye', 'satis', 'depo'].forEach((t) => {
-    document.getElementById('f-' + t).classList.toggle('active', t === tip);
-  });
-  renderGecmis();
-}
-
 function renderGecmis() {
   const arama = document.getElementById('gecmis-arama').value.toLowerCase().trim();
+  const filtre = document.getElementById('gecmis-filtre').value;
   const liste = islemler.filter((i) =>
-    (filtreTip === 'hepsi' || i.tip === filtreTip) &&
+    (filtre === 'hepsi' || i.tip === filtre) &&
     (i.urun.toLowerCase().includes(arama) || i.barkod.includes(arama))
   );
   document.getElementById('kayit-sayi').textContent = liste.length + ' kayıt';
   const el = document.getElementById('gecmis-liste');
   if (!liste.length) {
-    el.innerHTML = '<div class="bos">Kayıt yok</div>';
+    el.innerHTML = '<div class="bos">Kayıt yok.</div>';
     return;
   }
   const EN_FAZLA = 300;
-  el.innerHTML = liste.slice(0, EN_FAZLA).map((i) => {
-    const t = TIPLER[i.tip] || { label: i.tip, emoji: '' };
-    return '<div class="gecmis-kart">' +
-      '<div class="gecmis-ust">' +
-        '<span class="tip-chip c-' + esc(i.tip) + '">' + t.emoji + ' ' + esc(t.label) + '</span>' +
-        '<span class="gecmis-tarih">' + tarihYaz(i.tarih) + '</span>' +
-      '</div>' +
-      '<div class="gecmis-urun">' + esc(i.urun) + '</div>' +
-      (i.not ? '<div class="gecmis-not">📝 ' + esc(i.not) + '</div>' : '') +
-      '<div class="gecmis-alt">' +
-        '<span class="gecmis-detay"><b>' + i.adet + ' adet</b> · stok ' + sayiYaz(i.oncekiStok) + ' → ' + sayiYaz(i.yeniStok) + '</span>' +
-        '<button class="btn-geri-al" onclick="islemGeriAl(' + Number(i.id) + ')">↩ Geri Al</button>' +
-      '</div>' +
-    '</div>';
-  }).join('') +
-  (liste.length > EN_FAZLA ? '<div class="bos">Son ' + EN_FAZLA + ' kayıt gösteriliyor. Tamamı için Rapor İndir.</div>' : '');
+  const kesik = liste.slice(0, EN_FAZLA);
+  const fazlaNotu = liste.length > EN_FAZLA
+    ? '<div class="bos">Son ' + EN_FAZLA + ' kayıt gösteriliyor. Tamamı için Rapor İndir.</div>' : '';
+
+  if (mobilMi()) {
+    el.innerHTML = kesik.map((i) => {
+      const t = TIPLER[i.tip] || { label: i.tip };
+      return '<div class="m-kart">' +
+        '<div class="m-ust"><b>' + esc(t.label) + '</b><span>' + tarihYaz(i.tarih) + '</span></div>' +
+        '<div class="m-ad">' + esc(i.urun) + '</div>' +
+        (i.not ? '<div class="m-alt">Not: ' + esc(i.not) + '</div>' : '') +
+        '<div class="m-satir-alt">' +
+          '<span>' + i.adet + ' adet — stok ' + sayiYaz(i.oncekiStok) + ' &rarr; ' + sayiYaz(i.yeniStok) + '</span>' +
+          '<button class="btn btn-kucuk" onclick="islemGeriAl(' + Number(i.id) + ')">Geri Al</button>' +
+        '</div>' +
+      '</div>';
+    }).join('') + fazlaNotu;
+  } else {
+    el.innerHTML = '<table class="tablo"><thead><tr>' +
+      '<th>Tarih</th><th>Tip</th><th>Ürün</th><th>Not</th><th class="sag">Adet</th><th class="sag">Stok</th><th></th>' +
+      '</tr></thead><tbody>' +
+      kesik.map((i) => {
+        const t = TIPLER[i.tip] || { label: i.tip };
+        return '<tr>' +
+          '<td style="white-space:nowrap;">' + tarihYaz(i.tarih) + '</td>' +
+          '<td>' + esc(t.label) + '</td>' +
+          '<td>' + esc(i.urun) + '</td>' +
+          '<td>' + esc(i.not || '') + '</td>' +
+          '<td class="sag">' + i.adet + '</td>' +
+          '<td class="sag" style="white-space:nowrap;">' + sayiYaz(i.oncekiStok) + ' &rarr; ' + sayiYaz(i.yeniStok) + '</td>' +
+          '<td><button class="btn btn-kucuk" onclick="islemGeriAl(' + Number(i.id) + ')">Geri Al</button></td>' +
+        '</tr>';
+      }).join('') +
+      '</tbody></table>' + fazlaNotu;
+  }
 }
 
 // ===== STOK =====
+function stokRenk(stok) {
+  return stok === 0 ? 'k-kirmizi' : stok < 50 ? 'k-turuncu' : 'k-yesil';
+}
+
 function renderStok() {
   const arama = document.getElementById('stok-arama').value.toLowerCase().trim();
   const liste = stoklar.filter((s) =>
@@ -958,58 +916,84 @@ function renderStok() {
   document.getElementById('stok-sayi').textContent = liste.length + ' ürün';
   const el = document.getElementById('stok-liste');
   if (!liste.length) {
-    el.innerHTML = '<div class="bos">Ürün bulunamadı</div>';
+    el.innerHTML = '<div class="bos">Ürün bulunamadı.</div>';
     return;
   }
-  el.innerHTML = liste.map((s) => {
-    const cls = s.stok === 0 ? 'n-kirmizi' : s.stok < 50 ? 'n-turuncu' : 'n-yesil';
-    return '<button class="stok-kart" data-barkod="' + esc(s.barkod) + '" onclick="urunSec(this.dataset.barkod)">' +
-      '<div class="stok-bilgi">' +
-        '<div class="stok-ad">' + esc(s.urun) + '</div>' +
-        '<div class="stok-alt">' + esc(s.barkod) + ' · ' + esc(s.kategori) + '</div>' +
-      '</div>' +
-      '<div class="stok-adet"><div class="n ' + cls + '">' + sayiYaz(s.stok) + '</div><div class="b">adet</div></div>' +
-    '</button>';
-  }).join('');
+
+  if (mobilMi()) {
+    el.innerHTML = liste.map((s) =>
+      '<button class="m-kart" data-barkod="' + esc(s.barkod) + '" onclick="urunSec(this.dataset.barkod)">' +
+        '<span class="m-stok ' + stokRenk(s.stok) + '">' + sayiYaz(s.stok) + '</span>' +
+        '<div class="m-ad">' + esc(s.urun) + '</div>' +
+        '<div class="m-alt">' + esc(s.barkod) + ' &middot; ' + esc(s.kategori) + '</div>' +
+      '</button>'
+    ).join('');
+  } else {
+    el.innerHTML = '<table class="tablo"><thead><tr>' +
+      '<th>Barkod</th><th>Ürün Adı</th><th>Kategori</th><th class="sag">Stok</th>' +
+      '</tr></thead><tbody>' +
+      liste.map((s) =>
+        '<tr class="secilebilir" data-barkod="' + esc(s.barkod) + '" onclick="urunSec(this.dataset.barkod)" title="Seçmek için tıklayın">' +
+          '<td style="font-family:\'Courier New\',monospace;">' + esc(s.barkod) + '</td>' +
+          '<td>' + esc(s.urun) + '</td>' +
+          '<td>' + esc(s.kategori) + '</td>' +
+          '<td class="sag ' + stokRenk(s.stok) + '">' + sayiYaz(s.stok) + '</td>' +
+        '</tr>'
+      ).join('') +
+      '</tbody></table>';
+  }
 }
 
 // ===== CALISAN =====
 function renderCalisan() {
-  const kisiler = [...new Set(calisanlar.map((c) => c.calisan))];
-  const el = document.getElementById('calisan-liste');
-  if (!kisiler.length) {
-    el.innerHTML = '<div class="bos">Çalışan kaydı yok</div>';
+  // Masaustu: tek tablo. Mobil (menu sayfasi): calisana gore gruplu kartlar.
+  const masaEl = document.getElementById('calisan-liste');
+  const mobilEl = document.getElementById('menu-calisan-liste');
+
+  if (!calisanlar.length) {
+    masaEl.innerHTML = '<div class="bos">Çalışan kaydı yok.</div>';
+    mobilEl.innerHTML = '<div class="bos">Çalışan kaydı yok.</div>';
     return;
   }
-  el.innerHTML = kisiler.map((ad) => {
+
+  masaEl.innerHTML = '<table class="tablo"><thead><tr>' +
+    '<th>Çalışan</th><th>Barkod</th><th>Ürün</th><th class="sag">Stok</th>' +
+    '</tr></thead><tbody>' +
+    calisanlar.map((c) =>
+      '<tr>' +
+        '<td>' + esc(c.calisan) + '</td>' +
+        '<td style="font-family:\'Courier New\',monospace;">' + esc(c.barkod) + '</td>' +
+        '<td>' + esc(c.urun) + '</td>' +
+        '<td class="sag ' + (c.stok < 5 ? 'k-kirmizi' : 'k-yesil') + '">' + sayiYaz(c.stok) + '</td>' +
+      '</tr>'
+    ).join('') +
+    '</tbody></table>';
+
+  const kisiler = [...new Set(calisanlar.map((c) => c.calisan))];
+  mobilEl.innerHTML = kisiler.map((ad) => {
     const satirlar = calisanlar.filter((c) => c.calisan === ad).map((c) =>
-      '<div class="stok-kart" style="cursor:default;">' +
-        '<div class="stok-bilgi">' +
-          '<div class="stok-ad">' + esc(c.urun) + '</div>' +
-          '<div class="stok-alt">' + esc(c.barkod) + '</div>' +
-        '</div>' +
-        '<div class="stok-adet"><div class="n ' + (c.stok < 5 ? 'n-kirmizi' : 'n-yesil') + '">' + sayiYaz(c.stok) + '</div><div class="b">adet</div></div>' +
+      '<div class="m-kart">' +
+        '<span class="m-stok ' + (c.stok < 5 ? 'k-kirmizi' : 'k-yesil') + '">' + sayiYaz(c.stok) + '</span>' +
+        '<div class="m-ad">' + esc(c.urun) + '</div>' +
+        '<div class="m-alt">' + esc(c.barkod) + '</div>' +
       '</div>'
     ).join('');
-    return '<div class="calisan-baslik">👤 ' + esc(ad) + '</div>' + satirlar;
+    return '<div class="calisan-ad">' + esc(ad) + '</div>' + satirlar;
   }).join('');
 }
 
 // ===== GOOGLE SHEETS =====
 async function sheetsSenkron() {
-  const btn = document.getElementById('btn-sync');
-  const eski = btn.innerHTML;
-  btn.innerHTML = '<span class="ikon">⏳</span> Gönderiliyor...';
-  btn.disabled = true;
+  const btns = document.querySelectorAll('.btn-sync');
+  btns.forEach((b) => { b.textContent = 'Gönderiliyor...'; b.disabled = true; });
   try {
     const r = await api('/sync', { method: 'POST' });
-    if (r.ok) showFlash('success', '🔄 ' + r.mesaj);
-    else showFlash('error', '⚠️ ' + r.mesaj);
+    if (r.ok) showFlash('success', r.mesaj);
+    else showFlash('error', r.mesaj);
   } catch (e) {
     showFlash('error', 'Senkron hatası: ' + e.message);
   } finally {
-    btn.innerHTML = eski;
-    btn.disabled = false;
+    btns.forEach((b) => { b.textContent = 'Sheets Senkron'; b.disabled = false; });
   }
 }
 
@@ -1038,7 +1022,7 @@ async function kameraAc() {
     ];
     await qrScanner.start(
       { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 280, height: 180 }, formatsToSupport: formatlar },
+      { fps: 10, qrbox: { width: 280, height: 180 }, aspectRatio: 1.0, formatsToSupport: formatlar },
       (kod) => onKodOkundu(kod),
       () => {}
     );
@@ -1076,7 +1060,7 @@ function onKodOkundu(kod) {
   kameraKapat();
   barkodDegisti();
   const u = seciliUrun();
-  if (u) showFlash('success', '📷 Okundu: ' + u.urun.slice(0, 50));
+  if (u) showFlash('success', 'Okundu: ' + u.urun.slice(0, 60));
   else showFlash('error', 'Bu barkod stok listesinde yok: ' + val.slice(0, 40));
 }
 
@@ -1109,7 +1093,7 @@ function excelYukle(e) {
       stoklar = r.stoklar;
       renderStok();
       barkodDegisti();
-      showFlash('success', '✓ ' + r.adet + ' ürün yüklendi');
+      showFlash('success', r.adet + ' ürün yüklendi');
     } catch (err) {
       showFlash('error', 'Yükleme hatası: ' + err.message);
     }
@@ -1151,10 +1135,11 @@ document.getElementById('adet-input').addEventListener('input', guncelleBtn);
 // Donanim barkod okuyucu (USB/Bluetooth): okut sayfasinda hicbir alan odakli degilken
 // tuslama gelirse barkod alanina yonlendir (mobilde otomatik odak verilmedigi icin gerekli)
 document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.key === ' ') return; // kisayollara/kaydirmaya karisma
   if (document.getElementById('app').classList.contains('app-hidden')) return;
-  if (!document.getElementById('page-okut').classList.contains('active')) return;
+  if (aktifSayfa !== 'okut') return;
   const aktif = document.activeElement;
-  if (aktif && (aktif.tagName === 'INPUT' || aktif.tagName === 'TEXTAREA')) return;
+  if (aktif && (aktif.tagName === 'INPUT' || aktif.tagName === 'TEXTAREA' || aktif.tagName === 'SELECT')) return;
   if (e.key.length === 1) document.getElementById('barkod-input').focus();
 });
 

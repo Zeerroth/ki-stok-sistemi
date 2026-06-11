@@ -96,6 +96,8 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             set -e
+            # Etkilesimsiz SSH oturumunda PATH eksik olabilir; pm2'yi npm global bin'inden bul
+            export PATH="$(npm prefix -g)/bin:$PATH"
             cd ~/ki-stok-sistemi
             git pull origin main
             npm install --production

@@ -15,11 +15,12 @@ const CRED_PATH = process.env.GOOGLE_CREDENTIALS_PATH || path.join(__dirname, 'g
 let sheets = null;
 let aktif = false;
 
-const BASLIK_STOK = ['Barkod', 'Urun Adi', 'Kategori', 'Stok'];
-const BASLIK_ISLEM = ['Tarih', 'Cikis Tipi', 'Barkod', 'Urun Adi', 'Adet', 'Onceki Stok', 'Yeni Stok', 'Not'];
+const BASLIK_STOK = ['Barkod', 'Urun Adi', 'Kategori', 'Stok Izmir', 'Stok Istanbul'];
+const BASLIK_ISLEM = ['Tarih', 'Cikis Tipi', 'Depo', 'Barkod', 'Urun Adi', 'Adet', 'Onceki Stok', 'Yeni Stok', 'Not'];
 const BASLIK_CALISAN = ['Calisan', 'Barkod', 'Urun', 'Stok'];
 
 const TIP_ETIKET = { hediye: 'Hediye', satis: 'Satis', depo: 'Depo Satisi' };
+const DEPO_ETIKET = { izmir: 'Izmir', istanbul: 'Istanbul' };
 
 async function init() {
   if (!SHEET_ID) {
@@ -76,8 +77,8 @@ async function yazTablo(title, basliklar, satirlar) {
 
 async function syncStok() {
   if (!aktif) return;
-  const rows = db.prepare('SELECT barkod, urun, kategori, stok FROM stoklar ORDER BY urun').all();
-  await yazTablo('Stok', BASLIK_STOK, rows.map((r) => [r.barkod, r.urun, r.kategori, r.stok]));
+  const rows = db.prepare('SELECT barkod, urun, kategori, stok_izmir, stok_istanbul FROM stoklar ORDER BY urun').all();
+  await yazTablo('Stok', BASLIK_STOK, rows.map((r) => [r.barkod, r.urun, r.kategori, r.stok_izmir, r.stok_istanbul]));
 }
 
 async function syncCalisanlar() {
@@ -89,11 +90,12 @@ async function syncCalisanlar() {
 async function syncIslemler() {
   if (!aktif) return;
   const rows = db
-    .prepare('SELECT tarih, tip, barkod, urun, adet, oncekiStok, yeniStok, not_metni FROM islemler ORDER BY id ASC')
+    .prepare('SELECT tarih, tip, depo, barkod, urun, adet, oncekiStok, yeniStok, not_metni FROM islemler ORDER BY id ASC')
     .all();
   const satirlar = rows.map((r) => [
     yerelTarih(r.tarih),
     TIP_ETIKET[r.tip] || r.tip,
+    DEPO_ETIKET[r.depo] || r.depo,
     r.barkod,
     r.urun,
     r.adet,
@@ -108,7 +110,7 @@ async function syncIslemler() {
 async function appendIslem(i) {
   if (!aktif) return;
   await ensureSheet('Islemler');
-  const mevcut = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: 'Islemler!A1:H1' });
+  const mevcut = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: 'Islemler!A1:I1' });
   if (!mevcut.data.values || !mevcut.data.values.length) {
     await sheets.spreadsheets.values.update({
       spreadsheetId: SHEET_ID,
@@ -126,6 +128,7 @@ async function appendIslem(i) {
       values: [[
         yerelTarih(i.tarih),
         TIP_ETIKET[i.tip] || i.tip,
+        DEPO_ETIKET[i.depo] || i.depo || '',
         i.barkod,
         i.urun,
         i.adet,

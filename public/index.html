@@ -63,6 +63,7 @@
   .sayfa { display: none; }
   .sayfa.active { display: block; }
   .app-hidden { display: none !important; }
+  .gizli { display: none !important; }
   .bos { color: #555; padding: 16px 4px; }
 
   .k-yesil   { color: #006600; font-weight: bold; }
@@ -200,6 +201,12 @@
     #adet-input { width: 70px; padding: 4px; font-size: 14px; text-align: center; }
     #not-input { width: 100%; max-width: 420px; padding: 4px 6px; font-size: 12px; }
     .btn-onay { padding: 8px 28px; font-size: 13px; font-weight: bold; }
+    .btn-onay2 { padding: 6px 24px; font-size: 12px; font-weight: bold; }
+
+    /* Admin paneli (masaustu) */
+    #yeni-barkod, #yeni-ad, #yeni-kategori { width: 320px; padding: 4px 6px; font-size: 12px; }
+    #yeni-izmir, #yeni-istanbul { width: 90px; padding: 4px 6px; font-size: 12px; }
+    .adm-tablo-giris { width: 80px; padding: 3px 4px; font-size: 12px; text-align: right; }
 
     .ozet-tablo { border-collapse: collapse; }
     .ozet-tablo th, .ozet-tablo td { border: 1px solid #808080; padding: 3px 14px; text-align: center; }
@@ -236,6 +243,16 @@
     /* Mobil listeleri masaustunde tablo halinde ciziyoruz; kart stilleri gerekmez */
   }
 
+  /* Dokunmatik genis ekran (tablet, >=768px): masaustu duzeni ama dokunulabilir boyutlar.
+     16px input iOS odak zoomunu engeller, 44px buton dokunma hedefini saglar. */
+  @media (min-width: 768px) and (pointer: coarse) {
+    .adm-tablo-giris { font-size: 16px; width: 96px; }
+    #yeni-barkod, #yeni-ad, #yeni-kategori, #yeni-izmir, #yeni-istanbul { font-size: 16px; }
+    .btn-kucuk { min-height: 44px; font-size: 13px; }
+    .liste-arac .giris-kutusu, .liste-arac select { font-size: 16px; min-height: 40px; }
+    #barkod-input, #adet-input, #not-input { font-size: 16px; }
+  }
+
   /* ===================== MOBIL (< 768px) ===================== */
   /* .98 kesri: kesirli viewport genisliklerinde (zoom/dPR) iki sorgu arasinda bosluk kalmasin */
   @media (max-width: 767.98px) {
@@ -266,6 +283,8 @@
     #adet-input { flex: 1; min-width: 0; padding: 10px; font-size: 24px; font-weight: bold; text-align: center; }
     #not-input { width: 100%; padding: 12px 10px; font-size: 16px; }
     .btn-onay { width: 100%; min-height: 62px; font-size: 17px; font-weight: bold; }
+    .depo-grup { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+    .depo-grup .tip-btn { min-height: 52px; }
 
     .ozet-tablo { border-collapse: collapse; width: 100%; }
     .ozet-tablo th, .ozet-tablo td { border: 1px solid #808080; padding: 7px 4px; text-align: center; font-size: 13px; }
@@ -293,7 +312,7 @@
     .m-kart .m-ust { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: #333; margin-bottom: 5px; }
     .m-kart .m-ad { font-weight: bold; overflow-wrap: anywhere; }
     .m-kart .m-alt { font-size: 13px; color: #333; margin-top: 5px; overflow-wrap: anywhere; }
-    .m-kart .m-stok { float: right; font-size: 19px; margin-left: 8px; }
+    .m-kart .m-stok { float: right; font-size: 14px; margin-left: 8px; text-align: right; line-height: 1.6; }
     .m-kart .m-satir-alt { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; }
     .btn-kucuk { min-height: 44px; padding: 6px 14px; font-size: 14px; }
 
@@ -305,6 +324,16 @@
     .dosya-sar .menu-buton { margin-bottom: 0; }
     .dosya-sar input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
     .bolum-baslik { font-weight: bold; font-size: 13px; margin: 16px 0 8px; letter-spacing: 1px; }
+
+    /* Admin paneli (mobil) */
+    #page-admin .giris-kutusu { width: 100%; padding: 12px 10px; font-size: 16px; }
+    .btn-onay2 { width: 100%; min-height: 54px; font-size: 16px; font-weight: bold; }
+    .adm-satir { display: flex; gap: 8px; margin-top: 8px; }
+    .adm-grup { flex: 1; }
+    .adm-etiket { display: block; font-size: 13px; font-weight: bold; margin-bottom: 3px; }
+    #page-admin .adm-grup .giris-kutusu { text-align: center; font-size: 18px; }
+    .adm-butonlar { display: flex; gap: 8px; margin-top: 8px; }
+    .adm-butonlar .btn { flex: 1; min-height: 48px; font-size: 15px; font-weight: bold; }
 
     /* Alt gezinme cubugu */
     .alt-nav {
@@ -384,7 +413,7 @@
 
   <!-- MASAUSTU: arac cubugu -->
   <div class="arac-cubugu sadece-masa">
-    <div class="dosya-sar" style="position:relative;">
+    <div class="dosya-sar sadece-admin gizli" style="position:relative;">
       <button class="btn">Excel Yükle</button>
       <input type="file" accept=".xlsx,.xls" onchange="excelYukle(event)"
              style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;">
@@ -401,6 +430,7 @@
     <button class="sekme tab-stok" onclick="setTab('stok')">Stok</button>
     <button class="sekme tab-gecmis" onclick="setTab('gecmis')">Çıkış Geçmişi</button>
     <button class="sekme tab-calisan" onclick="setTab('calisan')">Çalışan</button>
+    <button class="sekme tab-admin sadece-admin gizli" onclick="setTab('admin')">Yönetim</button>
   </div>
 
   <div class="icerik-alani">
@@ -409,6 +439,13 @@
     <div id="page-okut" class="sayfa active">
       <fieldset>
         <legend>Çıkış İşlemi</legend>
+        <div class="satir">
+          <label>Depo:</label>
+          <div class="alan-ic depo-grup">
+            <button class="btn tip-btn" id="depo-izmir" onclick="setDepo('izmir')">İZMİR</button>
+            <button class="btn tip-btn" id="depo-istanbul" onclick="setDepo('istanbul')">İSTANBUL</button>
+          </div>
+        </div>
         <div class="satir satir-kamera">
           <label for="barkod-input">Barkod:</label>
           <div class="alan-ic">
@@ -457,7 +494,7 @@
       <fieldset>
         <legend>Bugünkü Çıkışlar</legend>
         <table class="ozet-tablo">
-          <tr><th></th><th>Hediye</th><th>Satış</th><th>Depo Satışı</th></tr>
+          <tr><th id="ozet-baslik"></th><th>Hediye</th><th>Satış</th><th>Depo Satışı</th></tr>
           <tr><th>Adet</th><td id="ozet-hediye">0</td><td id="ozet-satis">0</td><td id="ozet-depo">0</td></tr>
           <tr><th>İşlem</th><td id="ozet-hediye-islem">0</td><td id="ozet-satis-islem">0</td><td id="ozet-depo-islem">0</td></tr>
         </table>
@@ -484,6 +521,11 @@
           <option value="satis">Satış</option>
           <option value="depo">Depo Satışı</option>
         </select>
+        <select id="gecmis-depo" onchange="renderGecmis()">
+          <option value="hepsi">Tüm Depolar</option>
+          <option value="izmir">İzmir</option>
+          <option value="istanbul">İstanbul</option>
+        </select>
         <span class="kayit-sayi" id="kayit-sayi"></span>
       </div>
       <div id="gecmis-liste"></div>
@@ -494,10 +536,54 @@
       <div id="calisan-liste"></div>
     </div>
 
+    <!-- SAYFA: ADMIN (yalniz admin sifresiyle giriste gorunur) -->
+    <div id="page-admin" class="sayfa">
+      <fieldset>
+        <legend>Yeni Ürün Ekle</legend>
+        <div class="satir">
+          <label for="yeni-barkod">Barkod:</label>
+          <div class="alan-ic"><input class="giris-kutusu" id="yeni-barkod" inputmode="numeric"></div>
+        </div>
+        <div class="satir">
+          <label for="yeni-ad">Ürün Adı:</label>
+          <div class="alan-ic"><input class="giris-kutusu" id="yeni-ad"></div>
+        </div>
+        <div class="satir">
+          <label for="yeni-kategori">Kategori:</label>
+          <div class="alan-ic"><input class="giris-kutusu" id="yeni-kategori" placeholder="Genel"></div>
+        </div>
+        <div class="satir">
+          <label for="yeni-izmir">İzmir Stok:</label>
+          <div class="alan-ic"><input class="giris-kutusu" id="yeni-izmir" type="number" inputmode="numeric" min="0" value="0"></div>
+        </div>
+        <div class="satir">
+          <label for="yeni-istanbul">İstanbul Stok:</label>
+          <div class="alan-ic"><input class="giris-kutusu" id="yeni-istanbul" type="number" inputmode="numeric" min="0" value="0"></div>
+        </div>
+        <div class="satir">
+          <label class="sadece-masa"></label>
+          <div class="alan-ic"><button class="btn btn-onay2" onclick="adminUrunEkle()">Ürün Ekle</button></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Ürünler — Stok Düzeltme ve Silme</legend>
+        <div class="liste-arac">
+          <input class="giris-kutusu" id="admin-arama" placeholder="Ürün adı veya barkod arayın" oninput="renderAdmin()">
+          <span class="kayit-sayi" id="admin-sayi"></span>
+        </div>
+        <div class="ipucu">Miktarı değiştirip Kaydet'e basın. Silme işlemi geri alınamaz.</div>
+        <div id="admin-liste"></div>
+      </fieldset>
+    </div>
+
     <!-- SAYFA: MENU (yalniz mobil) -->
     <div id="page-menu" class="sayfa">
+      <div class="bolum-baslik sadece-admin gizli">YÖNETİM</div>
+      <button class="btn menu-buton sadece-admin gizli" onclick="setTab('admin')">Yönetim Paneli (Stok Düzelt / Ürün Ekle-Sil)</button>
+
       <div class="bolum-baslik">İŞLEMLER</div>
-      <div class="dosya-sar">
+      <div class="dosya-sar sadece-admin gizli">
         <button class="btn menu-buton">Excel ile Stok Listesi Yükle</button>
         <input type="file" accept=".xlsx,.xls" onchange="excelYukle(event)">
       </div>
@@ -554,6 +640,10 @@ let islemler = [];
 let seciliTip = 'satis';
 let aktifSayfa = 'okut';
 
+const DEPOLAR_UI = { izmir: 'İzmir', istanbul: 'İstanbul' };
+let seciliDepo = localStorage.getItem('ki_depo');
+if (!DEPOLAR_UI[seciliDepo]) seciliDepo = 'izmir';
+
 // Fiziksel klavye/fare var mi? (mobilde otomatik odak klavyeyi acmasin diye)
 const FARE = window.matchMedia('(pointer: fine)').matches;
 
@@ -600,9 +690,14 @@ async function girisYap() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sifre }),
     });
-    if (!res.ok) { err.textContent = 'Şifre hatalı'; return; }
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      err.textContent = d.error || 'Şifre hatalı';
+      return;
+    }
     const data = await res.json();
     localStorage.setItem('ki_token', data.token);
+    localStorage.setItem('ki_rol', data.rol || 'normal');
     await uygulamayiBaslat();
   } catch (e) {
     err.textContent = 'Bağlantı hatası';
@@ -611,9 +706,17 @@ async function girisYap() {
 
 function cikisYap() {
   localStorage.removeItem('ki_token');
+  localStorage.removeItem('ki_rol');
   document.getElementById('app').classList.add('app-hidden');
   document.getElementById('login-overlay').style.display = 'flex';
   document.getElementById('login-sifre').value = '';
+}
+
+// Admin sifresiyle girildiyse Yonetim sekmesi/butonu gosterilir
+function rolUygula() {
+  const admin = localStorage.getItem('ki_rol') === 'admin';
+  document.querySelectorAll('.sadece-admin').forEach((el) => el.classList.toggle('gizli', !admin));
+  if (!admin && aktifSayfa === 'admin') setTab('okut');
 }
 
 function cikisOnayla() {
@@ -625,6 +728,8 @@ async function uygulamayiBaslat() {
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('app').classList.remove('app-hidden');
   setTip('satis');
+  setDepo(seciliDepo);
+  rolUygula();
   hepsiniCiz();
   if (FARE) document.getElementById('barkod-input').focus();
 }
@@ -645,16 +750,21 @@ function hepsiniCiz() {
   renderStok();
   renderGecmis();
   renderCalisan();
+  renderAdmin();
   barkodDegisti();
 }
 
 // ===== SEKME =====
 function setTab(id) {
   aktifSayfa = id;
-  ['okut', 'stok', 'gecmis', 'calisan', 'menu'].forEach((t) => {
+  ['okut', 'stok', 'gecmis', 'calisan', 'menu', 'admin'].forEach((t) => {
     document.getElementById('page-' + t).classList.toggle('active', t === id);
     document.querySelectorAll('.tab-' + t).forEach((b) => b.classList.toggle('active', t === id));
   });
+  // Yonetim sayfasi menuden acilir; mobil alt cubukta MENU isaretli kalsin
+  if (id === 'admin') {
+    document.querySelectorAll('.alt-nav .tab-menu').forEach((b) => b.classList.add('active'));
+  }
   window.scrollTo(0, 0);
   if (id === 'okut' && FARE) document.getElementById('barkod-input').focus();
   // Sekme degisince veriyi sessizce tazele (baska cihazdan islem yapilmis olabilir)
@@ -670,6 +780,18 @@ function setTip(tip) {
     document.getElementById('tip-' + t).classList.toggle('secili', t === tip);
   });
   guncelleBtn();
+}
+
+// ===== DEPO SECIMI =====
+function setDepo(depo) {
+  if (!DEPOLAR_UI[depo]) depo = 'izmir';
+  seciliDepo = depo;
+  localStorage.setItem('ki_depo', depo); // son secim hatirlanir
+  ['izmir', 'istanbul'].forEach((d) => {
+    document.getElementById('depo-' + d).classList.toggle('secili', d === depo);
+  });
+  guncelleOzet();
+  barkodDegisti();
 }
 
 // ===== BARKOD =====
@@ -688,11 +810,14 @@ function barkodDegisti() {
   stokEl.classList.remove('bulunamadi');
   if (u) {
     urunEl.textContent = u.urun;
-    if (u.stok === 0) {
-      stokEl.textContent = '0 adet (STOK YOK)';
+    const secilen = u['stok_' + seciliDepo];
+    const diger = seciliDepo === 'izmir' ? 'istanbul' : 'izmir';
+    const digerYazi = DEPOLAR_UI[diger] + ': ' + sayiYaz(u['stok_' + diger]);
+    if (secilen === 0) {
+      stokEl.textContent = DEPOLAR_UI[seciliDepo] + ': 0 adet (STOK YOK) — ' + digerYazi;
       stokEl.classList.add('bulunamadi');
     } else {
-      stokEl.textContent = sayiYaz(u.stok) + ' adet';
+      stokEl.textContent = DEPOLAR_UI[seciliDepo] + ': ' + sayiYaz(secilen) + ' adet — ' + digerYazi;
     }
   } else if (val.length >= 6) {
     urunEl.textContent = 'BARKOD BULUNAMADI';
@@ -741,7 +866,7 @@ function guncelleBtn() {
   }
   const adet = Math.max(1, parseInt(document.getElementById('adet-input').value, 10) || 1);
   btn.disabled = false;
-  btn.textContent = 'STOKTAN DÜŞ (' + adet + ' adet ' + TIPLER[seciliTip].label + ')';
+  btn.textContent = 'STOKTAN DÜŞ (' + adet + ' adet ' + TIPLER[seciliTip].label + ' — ' + DEPOLAR_UI[seciliDepo] + ')';
 }
 
 // ===== ISLEM YAP =====
@@ -753,6 +878,7 @@ async function islemYap() {
   if (!u) return;
   const barkod = u.barkod;
   const tip = seciliTip;
+  const depo = seciliDepo;
   const adet = Math.max(1, parseInt(document.getElementById('adet-input').value, 10) || 1);
   const not = document.getElementById('not-input').value.trim();
 
@@ -764,22 +890,23 @@ async function islemYap() {
   try {
     const r = await api('/islem', {
       method: 'POST',
-      body: JSON.stringify({ barkod, adet, tip, not }),
+      body: JSON.stringify({ barkod, adet, tip, depo, not }),
     });
     const idx = stoklar.findIndex((s) => s.barkod === barkod);
-    if (idx !== -1) stoklar[idx] = { ...stoklar[idx], stok: r.yeniStok };
+    if (idx !== -1) stoklar[idx] = { ...stoklar[idx], ['stok_' + depo]: r.yeniStok };
     islemler.unshift({
       id: r.id, tarih: new Date(), barkod, urun: r.urun,
-      tip, adet, not, oncekiStok: r.oncekiStok, yeniStok: r.yeniStok,
+      tip, depo, adet, not, oncekiStok: r.oncekiStok, yeniStok: r.yeniStok,
     });
 
-    showFlash('success', adet + ' adet düşüldü (' + TIPLER[tip].label + ') — ' + r.urun.slice(0, 40), r.id);
+    showFlash('success', adet + ' adet düşüldü (' + TIPLER[tip].label + ' — ' + DEPOLAR_UI[depo] + ') — ' + r.urun.slice(0, 40), r.id);
     document.getElementById('barkod-input').value = '';
     document.getElementById('not-input').value = '';
     document.getElementById('adet-input').value = 1;
     guncelleOzet();
     renderStok();
     renderGecmis();
+    renderAdmin();
     barkodDegisti();
     if (FARE) document.getElementById('barkod-input').focus();
   } catch (e) {
@@ -808,12 +935,13 @@ async function islemGeriAl(id, sormadan) {
     const idx = islemler.findIndex((i) => i.id === id);
     if (idx !== -1) islemler.splice(idx, 1);
     const s = stoklar.find((x) => x.barkod === r.barkod);
-    if (s) s.stok = r.yeniStok;
+    if (s && DEPOLAR_UI[r.depo]) s['stok_' + r.depo] = r.yeniStok;
     guncelleOzet();
     renderStok();
     renderGecmis();
+    renderAdmin();
     barkodDegisti();
-    showFlash('success', 'Geri alındı: ' + r.adet + ' adet stoğa eklendi');
+    showFlash('success', 'Geri alındı: ' + r.adet + ' adet ' + (DEPOLAR_UI[r.depo] || '') + ' stoğuna eklendi');
   } catch (e) {
     showFlash('error', e.message);
   } finally {
@@ -821,11 +949,14 @@ async function islemGeriAl(id, sormadan) {
   }
 }
 
-// ===== BUGUN OZETI =====
+// ===== BUGUN OZETI (secili deponun bugunku cikislari) =====
 function guncelleOzet() {
   const bugun = new Date().toDateString();
+  document.getElementById('ozet-baslik').textContent = DEPOLAR_UI[seciliDepo];
   ['hediye', 'satis', 'depo'].forEach((tip) => {
-    const liste = islemler.filter((i) => i.tip === tip && i.tarih.toDateString() === bugun);
+    const liste = islemler.filter((i) =>
+      i.tip === tip && i.depo === seciliDepo && i.tarih.toDateString() === bugun
+    );
     const toplam = liste.reduce((s, i) => s + i.adet, 0);
     document.getElementById('ozet-' + tip).textContent = sayiYaz(toplam);
     document.getElementById('ozet-' + tip + '-islem').textContent = liste.length;
@@ -855,8 +986,10 @@ function showFlash(type, msg, geriAlId) {
 function renderGecmis() {
   const arama = document.getElementById('gecmis-arama').value.toLowerCase().trim();
   const filtre = document.getElementById('gecmis-filtre').value;
+  const depoFiltre = document.getElementById('gecmis-depo').value;
   const liste = islemler.filter((i) =>
     (filtre === 'hepsi' || i.tip === filtre) &&
+    (depoFiltre === 'hepsi' || i.depo === depoFiltre) &&
     (i.urun.toLowerCase().includes(arama) || i.barkod.includes(arama))
   );
   document.getElementById('kayit-sayi').textContent = liste.length + ' kayıt';
@@ -873,8 +1006,9 @@ function renderGecmis() {
   if (mobilMi()) {
     el.innerHTML = kesik.map((i) => {
       const t = TIPLER[i.tip] || { label: i.tip };
+      const depoAd = DEPOLAR_UI[i.depo] || i.depo || '';
       return '<div class="m-kart">' +
-        '<div class="m-ust"><b>' + esc(t.label) + '</b><span>' + tarihYaz(i.tarih) + '</span></div>' +
+        '<div class="m-ust"><b>' + esc(t.label) + (depoAd ? ' — ' + esc(depoAd) : '') + '</b><span>' + tarihYaz(i.tarih) + '</span></div>' +
         '<div class="m-ad">' + esc(i.urun) + '</div>' +
         (i.not ? '<div class="m-alt">Not: ' + esc(i.not) + '</div>' : '') +
         '<div class="m-satir-alt">' +
@@ -885,13 +1019,14 @@ function renderGecmis() {
     }).join('') + fazlaNotu;
   } else {
     el.innerHTML = '<table class="tablo"><thead><tr>' +
-      '<th>Tarih</th><th>Tip</th><th>Ürün</th><th>Not</th><th class="sag">Adet</th><th class="sag">Stok</th><th></th>' +
+      '<th>Tarih</th><th>Tip</th><th>Depo</th><th>Ürün</th><th>Not</th><th class="sag">Adet</th><th class="sag">Stok</th><th></th>' +
       '</tr></thead><tbody>' +
       kesik.map((i) => {
         const t = TIPLER[i.tip] || { label: i.tip };
         return '<tr>' +
           '<td style="white-space:nowrap;">' + tarihYaz(i.tarih) + '</td>' +
           '<td>' + esc(t.label) + '</td>' +
+          '<td>' + esc(DEPOLAR_UI[i.depo] || i.depo || '') + '</td>' +
           '<td>' + esc(i.urun) + '</td>' +
           '<td>' + esc(i.not || '') + '</td>' +
           '<td class="sag">' + i.adet + '</td>' +
@@ -923,24 +1058,167 @@ function renderStok() {
   if (mobilMi()) {
     el.innerHTML = liste.map((s) =>
       '<button class="m-kart" data-barkod="' + esc(s.barkod) + '" onclick="urunSec(this.dataset.barkod)">' +
-        '<span class="m-stok ' + stokRenk(s.stok) + '">' + sayiYaz(s.stok) + '</span>' +
+        '<span class="m-stok">' +
+          '<span class="' + stokRenk(s.stok_izmir) + '">İzmir ' + sayiYaz(s.stok_izmir) + '</span><br>' +
+          '<span class="' + stokRenk(s.stok_istanbul) + '">İstanbul ' + sayiYaz(s.stok_istanbul) + '</span>' +
+        '</span>' +
         '<div class="m-ad">' + esc(s.urun) + '</div>' +
         '<div class="m-alt">' + esc(s.barkod) + ' &middot; ' + esc(s.kategori) + '</div>' +
       '</button>'
     ).join('');
   } else {
     el.innerHTML = '<table class="tablo"><thead><tr>' +
-      '<th>Barkod</th><th>Ürün Adı</th><th>Kategori</th><th class="sag">Stok</th>' +
+      '<th>Barkod</th><th>Ürün Adı</th><th>Kategori</th><th class="sag">İzmir</th><th class="sag">İstanbul</th>' +
       '</tr></thead><tbody>' +
       liste.map((s) =>
         '<tr class="secilebilir" data-barkod="' + esc(s.barkod) + '" onclick="urunSec(this.dataset.barkod)" title="Seçmek için tıklayın">' +
           '<td style="font-family:\'Courier New\',monospace;">' + esc(s.barkod) + '</td>' +
           '<td>' + esc(s.urun) + '</td>' +
           '<td>' + esc(s.kategori) + '</td>' +
-          '<td class="sag ' + stokRenk(s.stok) + '">' + sayiYaz(s.stok) + '</td>' +
+          '<td class="sag ' + stokRenk(s.stok_izmir) + '">' + sayiYaz(s.stok_izmir) + '</td>' +
+          '<td class="sag ' + stokRenk(s.stok_istanbul) + '">' + sayiYaz(s.stok_istanbul) + '</td>' +
         '</tr>'
       ).join('') +
       '</tbody></table>';
+  }
+}
+
+// ===== ADMIN PANELI =====
+let adminMesgul = false;
+
+function renderAdmin() {
+  const el = document.getElementById('admin-liste');
+  // Kullanici listedeki bir stok inputunda yaziyorsa yeniden cizme:
+  // kaydedilmemis girisler ve odak kaybolmasin (arama kutusu liste disinda, etkilenmez)
+  const aktif = document.activeElement;
+  if (aktif && aktif.tagName === 'INPUT' && el.contains(aktif)) return;
+  const arama = document.getElementById('admin-arama').value.toLowerCase().trim();
+  const liste = stoklar.filter((s) =>
+    !arama || s.urun.toLowerCase().includes(arama) || s.barkod.includes(arama)
+  );
+  document.getElementById('admin-sayi').textContent = liste.length + ' ürün';
+  if (!liste.length) {
+    el.innerHTML = '<div class="bos">Ürün bulunamadı.</div>';
+    return;
+  }
+
+  if (mobilMi()) {
+    el.innerHTML = liste.map((s) =>
+      '<div class="m-kart" data-barkod="' + esc(s.barkod) + '">' +
+        '<div class="m-ad">' + esc(s.urun) + '</div>' +
+        '<div class="m-alt">' + esc(s.barkod) + ' &middot; ' + esc(s.kategori) + '</div>' +
+        '<div class="adm-satir">' +
+          '<div class="adm-grup"><span class="adm-etiket">İzmir</span>' +
+            '<input class="giris-kutusu adm-izmir" type="number" inputmode="numeric" min="0" value="' + Number(s.stok_izmir) + '"></div>' +
+          '<div class="adm-grup"><span class="adm-etiket">İstanbul</span>' +
+            '<input class="giris-kutusu adm-istanbul" type="number" inputmode="numeric" min="0" value="' + Number(s.stok_istanbul) + '"></div>' +
+        '</div>' +
+        '<div class="adm-butonlar">' +
+          '<button class="btn" onclick="adminKaydet(this)">Kaydet</button>' +
+          '<button class="btn" onclick="adminSil(this)">Sil</button>' +
+        '</div>' +
+      '</div>'
+    ).join('');
+  } else {
+    el.innerHTML = '<table class="tablo"><thead><tr>' +
+      '<th>Barkod</th><th>Ürün Adı</th><th>Kategori</th><th class="sag">İzmir</th><th class="sag">İstanbul</th><th></th>' +
+      '</tr></thead><tbody>' +
+      liste.map((s) =>
+        '<tr data-barkod="' + esc(s.barkod) + '">' +
+          '<td style="font-family:\'Courier New\',monospace;">' + esc(s.barkod) + '</td>' +
+          '<td>' + esc(s.urun) + '</td>' +
+          '<td>' + esc(s.kategori) + '</td>' +
+          '<td class="sag"><input class="giris-kutusu adm-tablo-giris adm-izmir" type="number" inputmode="numeric" min="0" value="' + Number(s.stok_izmir) + '"></td>' +
+          '<td class="sag"><input class="giris-kutusu adm-tablo-giris adm-istanbul" type="number" inputmode="numeric" min="0" value="' + Number(s.stok_istanbul) + '"></td>' +
+          '<td style="white-space:nowrap;">' +
+            '<button class="btn btn-kucuk" onclick="adminKaydet(this)">Kaydet</button> ' +
+            '<button class="btn btn-kucuk" onclick="adminSil(this)">Sil</button>' +
+          '</td>' +
+        '</tr>'
+      ).join('') +
+      '</tbody></table>';
+  }
+}
+
+async function adminKaydet(btn) {
+  if (adminMesgul) return;
+  const kap = btn.closest('[data-barkod]');
+  const barkod = kap.dataset.barkod;
+  const izmir = parseInt(kap.querySelector('.adm-izmir').value, 10);
+  const istanbul = parseInt(kap.querySelector('.adm-istanbul').value, 10);
+  if (!Number.isInteger(izmir) || izmir < 0 || !Number.isInteger(istanbul) || istanbul < 0) {
+    showFlash('error', 'Stok miktarları 0 veya daha büyük tam sayı olmalı');
+    return;
+  }
+  adminMesgul = true;
+  try {
+    const r = await api('/admin/stok-duzelt', {
+      method: 'POST',
+      body: JSON.stringify({ barkod, stok_izmir: izmir, stok_istanbul: istanbul }),
+    });
+    const s = stoklar.find((x) => x.barkod === barkod);
+    if (s) { s.stok_izmir = r.stok_izmir; s.stok_istanbul = r.stok_istanbul; }
+    renderStok();
+    barkodDegisti();
+    showFlash('success', 'Stok güncellendi: ' + r.urun.slice(0, 50));
+  } catch (e) {
+    showFlash('error', e.message);
+  } finally {
+    adminMesgul = false;
+  }
+}
+
+async function adminSil(btn) {
+  if (adminMesgul) return;
+  const kap = btn.closest('[data-barkod]');
+  const barkod = kap.dataset.barkod;
+  const s = stoklar.find((x) => x.barkod === barkod);
+  const ad = s ? s.urun : barkod;
+  if (!confirm('"' + ad + '" ürünü silinsin mi?\nBu işlem geri alınamaz.')) return;
+  adminMesgul = true;
+  try {
+    await api('/admin/urun/' + encodeURIComponent(barkod), { method: 'DELETE' });
+    stoklar = stoklar.filter((x) => x.barkod !== barkod);
+    renderAdmin();
+    renderStok();
+    barkodDegisti();
+    showFlash('success', 'Ürün silindi: ' + ad.slice(0, 50));
+  } catch (e) {
+    showFlash('error', e.message);
+  } finally {
+    adminMesgul = false;
+  }
+}
+
+async function adminUrunEkle() {
+  if (adminMesgul) return;
+  const barkod = document.getElementById('yeni-barkod').value.trim();
+  const ad = document.getElementById('yeni-ad').value.trim();
+  const kategori = document.getElementById('yeni-kategori').value.trim() || 'Genel';
+  const izmir = parseInt(document.getElementById('yeni-izmir').value, 10) || 0;
+  const istanbul = parseInt(document.getElementById('yeni-istanbul').value, 10) || 0;
+  if (!barkod) { showFlash('error', 'Barkod girin'); return; }
+  if (!ad) { showFlash('error', 'Ürün adı girin'); return; }
+  if (izmir < 0 || istanbul < 0) { showFlash('error', 'Stok 0 veya daha büyük olmalı'); return; }
+  adminMesgul = true;
+  try {
+    await api('/admin/urun', {
+      method: 'POST',
+      body: JSON.stringify({ barkod, urun: ad, kategori, stok_izmir: izmir, stok_istanbul: istanbul }),
+    });
+    stoklar.push({ barkod, urun: ad, kategori, stok_izmir: izmir, stok_istanbul: istanbul });
+    stoklar.sort((a, b) => a.urun.localeCompare(b.urun, 'tr'));
+    ['yeni-barkod', 'yeni-ad', 'yeni-kategori'].forEach((id) => { document.getElementById(id).value = ''; });
+    document.getElementById('yeni-izmir').value = 0;
+    document.getElementById('yeni-istanbul').value = 0;
+    renderAdmin();
+    renderStok();
+    barkodDegisti();
+    showFlash('success', 'Ürün eklendi: ' + ad.slice(0, 50));
+  } catch (e) {
+    showFlash('error', e.message);
+  } finally {
+    adminMesgul = false;
   }
 }
 
@@ -1083,15 +1361,25 @@ function excelYukle(e) {
       const wb = XLSX.read(ev.target.result, { type: 'binary' });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const data = XLSX.utils.sheet_to_json(ws);
+      // Ilk dolu kolonu sayi olarak al (0 da gecerli deger sayilir)
+      const kolonDeger = (row, adlar) => {
+        for (const ad of adlar) {
+          if (row[ad] != null && row[ad] !== '') return Number(row[ad]) || 0;
+        }
+        return 0;
+      };
       const yeni = data.map((row) => ({
         barkod: String(row['Barkod'] || row['barkod'] || ''),
         urun: row['Urun Adi'] || row['Ürün Adı'] || row['urun'] || row['Urun'] || '',
-        stok: Number(row['Stok'] || row['stok'] || 0),
+        // Eski tek-kolonlu dosyalarla uyum: yalniz 'Stok' varsa Izmir'e yazilir
+        stok_izmir: kolonDeger(row, ['Stok Izmir', 'Stok İzmir', 'stok_izmir', 'Stok', 'stok']),
+        stok_istanbul: kolonDeger(row, ['Stok Istanbul', 'Stok İstanbul', 'stok_istanbul']),
         kategori: row['Kategori'] || row['kategori'] || 'Genel',
       }));
       const r = await api('/stoklar/import', { method: 'POST', body: JSON.stringify(yeni) });
       stoklar = r.stoklar;
       renderStok();
+      renderAdmin();
       barkodDegisti();
       showFlash('success', r.adet + ' ürün yüklendi');
     } catch (err) {
@@ -1110,7 +1398,8 @@ function excelIndir() {
   }
   const wb = XLSX.utils.book_new();
   const ws1 = XLSX.utils.json_to_sheet(stoklar.map((s) => ({
-    'Barkod': s.barkod, 'Urun Adi': s.urun, 'Kategori': s.kategori, 'Stok': s.stok,
+    'Barkod': s.barkod, 'Urun Adi': s.urun, 'Kategori': s.kategori,
+    'Stok Izmir': s.stok_izmir, 'Stok Istanbul': s.stok_istanbul,
   })));
   XLSX.utils.book_append_sheet(wb, ws1, 'Depo Stok');
 
@@ -1118,6 +1407,7 @@ function excelIndir() {
     const ws2 = XLSX.utils.json_to_sheet(islemler.map((i) => ({
       'Tarih': i.tarih.toLocaleString('tr-TR'),
       'Cikis Tipi': (TIPLER[i.tip] || { label: i.tip }).label,
+      'Depo': DEPOLAR_UI[i.depo] || i.depo || '',
       'Barkod': i.barkod,
       'Urun Adi': i.urun,
       'Adet': i.adet,

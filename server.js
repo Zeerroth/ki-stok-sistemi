@@ -23,7 +23,10 @@ app.use(express.json({ limit: '10mb' }));
 function auth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : '';
-  if (token && crypto.timingSafeEqual(Buffer.from(token), Buffer.from(AUTH_TOKEN))) {
+  // Iki tarafi da hash'le: uzunluklar daima esit olur, timingSafeEqual throw edemez
+  const a = crypto.createHash('sha256').update(token).digest();
+  const b = crypto.createHash('sha256').update(AUTH_TOKEN).digest();
+  if (token && crypto.timingSafeEqual(a, b)) {
     return next();
   }
   return res.status(401).json({ error: 'Yetkisiz' });
@@ -59,6 +62,9 @@ app.post('/api/stoklar/import', auth, (req, res) => {
       if (!barkod) continue;
       ekle.run(barkod, String(r.urun || ''), String(r.kategori || 'Genel'), Number(r.stok) || 0);
     }
+    // Import ani: bundan eski islemler geri alinamaz (stok sayimi sifirdan yazildi)
+    db.prepare('INSERT OR REPLACE INTO ayarlar (anahtar, deger) VALUES (?, ?)')
+      .run('son_import', new Date().toISOString());
   });
   tx(liste);
 
@@ -119,6 +125,44 @@ app.post('/api/islem', auth, (req, res) => {
     };
     Promise.all([sheets.appendIslem(islemKaydi), sheets.syncStok()])
       .catch((e) => console.error('[Sheets] islem sync:', e.message));
+  } catch (e) {
+    if (e && e.code) return res.status(e.code).json({ error: e.msg });
+    console.error(e);
+    res.status(500).json({ error: 'Sunucu hatasi' });
+  }
+});
+
+// Islemi geri al: kaydi sil + dusulen adedi stoga iade et (atomik)
+app.delete('/api/islemler/:id', auth, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: 'Gecersiz islem id' });
+
+  try {
+    const sonuc = db.transaction(() => {
+      const islem = db.prepare('SELECT * FROM islemler WHERE id = ?').get(id);
+      if (!islem) throw { code: 404, msg: 'Islem bulunamadi (zaten geri alinmis olabilir)' };
+
+      // Son Excel yuklemesinden onceki islemler geri alinamaz: stok sayimi o yuklemede
+      // sifirdan yazildi, iade edilirse stok fiziksel sayimdan sapar
+      const imp = db.prepare('SELECT deger FROM ayarlar WHERE anahtar = ?').get('son_import');
+      if (imp && islem.tarih < imp.deger) {
+        throw { code: 400, msg: 'Bu islem son Excel yuklemesinden once yapilmis, geri alinamaz' };
+      }
+
+      const u = db.prepare('SELECT * FROM stoklar WHERE barkod = ?').get(islem.barkod);
+      if (!u) throw { code: 404, msg: 'Urun stok listesinde yok, geri alinamadi' };
+
+      const yeniStok = u.stok + islem.adet;
+      db.prepare('UPDATE stoklar SET stok = ? WHERE barkod = ?').run(yeniStok, islem.barkod);
+      db.prepare('DELETE FROM islemler WHERE id = ?').run(id);
+
+      return { barkod: islem.barkod, urun: islem.urun, adet: islem.adet, yeniStok };
+    })();
+    res.json({ ok: true, ...sonuc });
+
+    // Google Sheets'e yansit (arka planda): stok + islem listesini yeniden yaz
+    Promise.all([sheets.syncStok(), sheets.syncIslemler()])
+      .catch((e) => console.error('[Sheets] geri alma sync:', e.message));
   } catch (e) {
     if (e && e.code) return res.status(e.code).json({ error: e.msg });
     console.error(e);

@@ -67,6 +67,11 @@ db.exec(`
     oncekiStok INTEGER NOT NULL,
     yeniStok   INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS ayarlar (
+    anahtar TEXT PRIMARY KEY,
+    deger   TEXT NOT NULL
+  );
 `);
 
 // ===== BASLANGIC VERISI (sadece tablo bossa) =====
